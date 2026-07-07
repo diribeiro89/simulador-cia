@@ -27,10 +27,8 @@ questoes = carregar_questoes()
 db.init_db()
 
 # -------------------------------------------------------
-# Configuração da Prova (ANBIMA CGA) – com sub‑proporções
+# Configuração da Prova (ANBIMA CGA) – 45 questões
 # -------------------------------------------------------
-# Cada grupo pode ter uma lista de temas_json e, opcionalmente, subproporcoes.
-# Se subproporcoes for definida, deve ter o mesmo tamanho que temas_json.
 GRUPOS_PROVA = [
     {
         "nome": "Gestão de Carteiras – Renda Variável",
@@ -64,25 +62,18 @@ GRUPOS_PROVA = [
             "CGA - Tributação de Fundos de Investimento"
         ],
         "proporcao": 21,
-        "subproporcoes": [11, 10]   # respectivamente, soma = 21
+        "subproporcoes": [11, 10]
     }
 ]
 
-TOTAL_QUESTOES_PROVA = 60
-TEMPO_PROVA_MIN = 150  # 2h30
+TOTAL_QUESTOES_PROVA = 45
+TEMPO_PROVA_MIN = 150
 
 def distribuir_questoes(total, grupos):
-    """
-    Retorna uma lista de dicionários, cada um com:
-        grupo_nome, tema_json, quantidade
-    Para grupos com subproporcoes, distribui a quantidade do grupo
-    proporcionalmente entre seus temas.
-    """
     distribuicao = []
     for grupo in grupos:
         qtd_grupo = int(round(total * grupo["proporcao"] / 100))
         if "subproporcoes" in grupo:
-            # Distribui qtd_grupo entre os temas de acordo com as subproporções
             sub_total = sum(grupo["subproporcoes"])
             for tema, sub_prop in zip(grupo["temas_json"], grupo["subproporcoes"]):
                 qtd_tema = int(round(qtd_grupo * sub_prop / sub_total))
@@ -91,10 +82,8 @@ def distribuir_questoes(total, grupos):
                     "tema_json": tema,
                     "quantidade": qtd_tema
                 })
-            # Ajusta diferenças de arredondamento (garantir soma exata)
             diff = qtd_grupo - sum(item["quantidade"] for item in distribuicao if item["grupo_nome"] == grupo["nome"])
             if diff != 0:
-                # Adiciona/remove diff no primeiro item do grupo
                 for item in distribuicao:
                     if item["grupo_nome"] == grupo["nome"]:
                         item["quantidade"] += diff
@@ -105,13 +94,10 @@ def distribuir_questoes(total, grupos):
                 "tema_json": grupo["temas_json"][0],
                 "quantidade": qtd_grupo
             })
-    # Ajusta para garantir soma exata de 60 (pode haver dif de 1 devido a arredondamentos)
     total_distribuido = sum(item["quantidade"] for item in distribuicao)
     diff = total - total_distribuido
-    if diff != 0:
-        # Ajusta no primeiro item
-        if distribuicao:
-            distribuicao[0]["quantidade"] += diff
+    if diff != 0 and distribuicao:
+        distribuicao[0]["quantidade"] += diff
     return distribuicao
 
 # -------------------------------------------------------
@@ -128,11 +114,10 @@ def persistir_tudo():
             db.save_descartes(qid, letras)
 
 # -------------------------------------------------------
-# Estado com carregamento do banco
+# Estado
 # -------------------------------------------------------
 def inicializar_estado():
     estado_salvo = db.load_estado()
-    
     defaults = {
         "modo": "Treino livre",
         "filtro_tema_atual": "Todos",
@@ -157,9 +142,9 @@ def inicializar_estado():
         "confirmar_finalizar": False,
         "leitner": {},
         "alternativas_descartadas": {},
-        # Prova
         "prova_questoes": [],
         "prova_respostas": {},
+        "prova_grupo_por_questao": {},
         "prova_i": 0,
         "prova_ativo": False,
         "prova_finalizado": False,
@@ -168,20 +153,16 @@ def inicializar_estado():
         "prova_duracao_min": TEMPO_PROVA_MIN,
         "prova_tempo_restante": None,
     }
-    
     for k, v in defaults.items():
         if k not in st.session_state:
             st.session_state[k] = v
-    
     for k, v in estado_salvo.items():
         if k in st.session_state:
             st.session_state[k] = v
-    
     st.session_state.historico = db.load_historico()
     st.session_state.erros = db.load_erros(questoes)
     st.session_state.leitner = db.load_leitner()
     st.session_state.alternativas_descartadas = db.load_descartes()
-    
     if st.session_state.questao_atual:
         ids_questoes = {q["id"] for q in questoes}
         if st.session_state.questao_atual.get("id") not in ids_questoes:
@@ -220,6 +201,7 @@ def resetar_simulado():
 def resetar_prova():
     st.session_state.prova_questoes = []
     st.session_state.prova_respostas = {}
+    st.session_state.prova_grupo_por_questao = {}
     st.session_state.prova_i = 0
     st.session_state.prova_ativo = False
     st.session_state.prova_finalizado = False
@@ -256,7 +238,7 @@ def obter_questoes_para_revisar():
     return [mapa[id] for id in ids_revisar if id in mapa]
 
 # -------------------------------------------------------
-# Descartar alternativas
+# Descartar alternativas (COM DESTAQUE VISUAL)
 # -------------------------------------------------------
 def toggle_descarte(q_id, letra):
     if q_id not in st.session_state.alternativas_descartadas:
@@ -281,15 +263,24 @@ def render_alternativas_com_descarte(q, key_prefix):
     st.markdown("**Alternativas:**")
     for letra in opcoes:
         is_descartada = letra in descartadas
+        is_selecionada = (st.session_state[resposta_key] == letra)
+        
         col1, col2 = st.columns([0.85, 0.15])
         with col1:
             label = f"{letra}) {q['opcoes'][letra]}"
             if is_descartada:
                 st.markdown(f"~~{label}~~")
             else:
-                if st.button(label, key=f"sel_{q['id']}_{letra}_{key_prefix}", use_container_width=True):
-                    st.session_state[resposta_key] = letra
-                    st.rerun()
+                if is_selecionada:
+                    # DESTAQUE VISUAL: fundo verde, borda, negrito
+                    st.markdown(
+                        f"<div style='background-color: #d4edda; padding: 8px; border-radius: 5px; border: 1px solid #28a745; font-weight: bold;'>{label}</div>",
+                        unsafe_allow_html=True
+                    )
+                else:
+                    if st.button(label, key=f"sel_{q['id']}_{letra}_{key_prefix}", use_container_width=True):
+                        st.session_state[resposta_key] = letra
+                        st.rerun()
         with col2:
             btn_label = "↩️" if is_descartada else "✖️"
             if st.button(btn_label, key=f"desc_{q['id']}_{letra}_{key_prefix}"):
@@ -298,6 +289,7 @@ def render_alternativas_com_descarte(q, key_prefix):
                     st.session_state[resposta_key] = None
                 st.rerun()
     
+    # Mensagem de confirmação (opcional)
     if st.session_state[resposta_key]:
         st.success(f"✅ Selecionada: {st.session_state[resposta_key]}) {q['opcoes'][st.session_state[resposta_key]]}")
     else:
@@ -324,10 +316,8 @@ def remover_erro(q):
 
 def registrar_resposta(q, resposta, origem="treino"):
     correto = (resposta is not None) and (resposta == q["correta"])
-    
     if origem == "revisao_erros":
         atualizar_leitner(q['id'], correto)
-    
     registro = {
         "data": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "id": q["id"],
@@ -341,14 +331,12 @@ def registrar_resposta(q, resposta, origem="treino"):
         "origem": origem,
     }
     st.session_state.historico.append(registro)
-    
     if correto:
         st.session_state.acertos.append(q["id"])
         if origem == "revisao_erros":
             remover_erro(q)
     else:
         adicionar_erro_sem_duplicar(q)
-    
     persistir_tudo()
     return correto
 
@@ -448,7 +436,6 @@ temas = sorted({q.get("tema") for q in questoes if q.get("tema")})
 # =======================================================
 if modo == "Treino livre":
     st.subheader("Treino livre")
-
     filtro_tema = st.selectbox("Filtrar por tema", ["Todos"] + temas)
     objetivos_disp = sorted({
         q.get("objetivo") for q in questoes
@@ -686,17 +673,7 @@ elif modo == "Simulado":
         st.divider()
         card_questao(q, mostrar_objetivo=False)
 
-        opcoes = list(q["opcoes"].keys())
-        escolha_atual = st.session_state.simulado_respostas.get(q["id"])
-        idx_atual = opcoes.index(escolha_atual) if escolha_atual in opcoes else None
-
-        resposta_sim = st.radio(
-            "Escolha:",
-            opcoes,
-            format_func=lambda x: f"{x}) {q['opcoes'][x]}",
-            index=idx_atual,
-            key=f"sim_{q['id']}_{i}",
-        )
+        resposta_sim = render_alternativas_com_descarte(q, f"sim_{q['id']}_{i}")
 
         if resposta_sim is not None:
             st.session_state.simulado_respostas[q["id"]] = resposta_sim
@@ -831,20 +808,16 @@ elif modo == "Simulado":
             st.rerun()
 
 # =======================================================
-# MODO 4 — Prova ANBIMA (60 questões, 2h30, com sub‑proporções)
+# MODO 4 — Prova ANBIMA (45 questões, 2h30, com relatório)
 # =======================================================
 elif modo == "Prova":
     st.subheader("📝 Prova ANBIMA CGA")
-    st.caption("60 questões | 2h30 | Proporções oficiais com sub‑temas")
+    st.caption(f"{TOTAL_QUESTOES_PROVA} questões | 2h30 | Proporções oficiais")
 
-    # --- Configuração ---
     if not st.session_state.prova_ativo and not st.session_state.prova_finalizado:
-        # Calcula distribuição detalhada
         distribuicao = distribuir_questoes(TOTAL_QUESTOES_PROVA, GRUPOS_PROVA)
         
-        # Exibe a distribuição
         st.info("**Distribuição das questões:**")
-        # Agrupa por grupo para mostrar de forma legível
         grupos_dict = {}
         for item in distribuicao:
             grupo = item["grupo_nome"]
@@ -857,12 +830,10 @@ elif modo == "Prova":
                 tema, qtd = temas[0]
                 st.write(f"- {grupo}: {qtd} questões ({tema})")
             else:
-                # Múltiplos temas (Legislação + Tributação)
                 st.write(f"- {grupo}:")
                 for tema, qtd in temas:
                     st.write(f"    - {tema}: {qtd} questões")
         
-        # Verifica disponibilidade
         faltam = False
         for item in distribuicao:
             tema_json = item["tema_json"]
@@ -876,19 +847,22 @@ elif modo == "Prova":
             st.stop()
         
         if st.button("🚀 Iniciar Prova", use_container_width=True):
-            # Seleciona as questões de cada tema conforme distribuição
             questoes_prova = []
+            grupo_por_questao = {}
             for item in distribuicao:
                 tema_json = item["tema_json"]
                 qtd = item["quantidade"]
+                grupo_nome = item["grupo_nome"]
                 qs_tema = [q for q in questoes if q.get("tema") == tema_json]
                 amostra = random.sample(qs_tema, qtd)
+                for q in amostra:
+                    grupo_por_questao[q["id"]] = grupo_nome
                 questoes_prova.extend(amostra)
-            # Embaralha tudo
             random.shuffle(questoes_prova)
             
             st.session_state.prova_questoes = questoes_prova
             st.session_state.prova_respostas = {}
+            st.session_state.prova_grupo_por_questao = grupo_por_questao
             st.session_state.prova_i = 0
             st.session_state.prova_ativo = True
             st.session_state.prova_finalizado = False
@@ -899,7 +873,6 @@ elif modo == "Prova":
             persistir_tudo()
             st.rerun()
 
-    # --- Prova em andamento ---
     if st.session_state.prova_ativo:
         elapsed = time.time() - st.session_state.inicio_prova
         restante = max(0.0, st.session_state.prova_duracao_min * 60 - elapsed)
@@ -980,10 +953,10 @@ elif modo == "Prova":
                 "Confirme para encerrar ou navegue para respondê-las."
             )
 
-    # --- Resultado da Prova ---
     if st.session_state.prova_finalizado:
         prov = st.session_state.prova_questoes
         respostas = st.session_state.prova_respostas
+        grupo_por_questao = st.session_state.prova_grupo_por_questao
 
         if not st.session_state.prova_registrado:
             for q_item in prov:
@@ -1006,6 +979,47 @@ elif modo == "Prova":
         c2.metric("Taxa de acerto", f"{taxa_prov:.1f}%")
         c3.metric("Não respondidas", nao_resp)
         st.progress(taxa_prov / 100, text=f"Aproveitamento: {taxa_prov:.1f}%")
+
+        # -------------------------------------------------------
+        # RELATÓRIO DETALHADO POR MÓDULO
+        # -------------------------------------------------------
+        st.divider()
+        st.markdown("### 📊 RELATÓRIO DETALHADO POR MÓDULO")
+
+        grupos_ids = {}
+        for q_item in prov:
+            grupo = grupo_por_questao.get(q_item["id"], "Outros")
+            if grupo not in grupos_ids:
+                grupos_ids[grupo] = []
+            grupos_ids[grupo].append(q_item["id"])
+
+        ordem_grupos = [g["nome"] for g in GRUPOS_PROVA]
+        if "Outros" in grupos_ids and "Outros" not in ordem_grupos:
+            ordem_grupos.append("Outros")
+
+        dados_tabela = []
+        for grupo in ordem_grupos:
+            if grupo not in grupos_ids:
+                continue
+            ids_questoes = grupos_ids[grupo]
+            total = len(ids_questoes)
+            corretas_por_id = {q["id"]: q["correta"] for q in prov}
+            acertos = sum(1 for qid in ids_questoes if respostas.get(qid) == corretas_por_id.get(qid))
+            pct = (acertos / total * 100) if total else 0.0
+            dados_tabela.append({
+                "Módulo": grupo,
+                "Total": total,
+                "Acertos": acertos,
+                "%": f"{pct:.1f}%"
+            })
+
+        if dados_tabela:
+            df_rel = pd.DataFrame(dados_tabela)
+            st.dataframe(
+                df_rel.style.format({"Total": "{:.0f}", "Acertos": "{:.0f}"}),
+                use_container_width=True,
+                hide_index=True,
+            )
 
         with st.expander("📋 Ver correção completa", expanded=False):
             def render_correcao(q_item, resp):
