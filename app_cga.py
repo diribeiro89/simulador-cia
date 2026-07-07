@@ -4,6 +4,7 @@ import random
 import time
 from datetime import datetime
 import pandas as pd
+import database as db
 
 st.set_page_config(
     page_title="Simulador CGA",
@@ -14,20 +15,20 @@ st.set_page_config(
 
 ARQUIVO_QUESTOES = "questoes_cga_todos_temas.json"
 
-
 @st.cache_data
 def carregar_questoes():
     with open(ARQUIVO_QUESTOES, encoding="utf-8") as f:
         return json.load(f)
 
-
 questoes = carregar_questoes()
-
+db.init_db()
 
 # -------------------------------------------------------
 # Estado
 # -------------------------------------------------------
 def inicializar_estado():
+    estado_salvo = db.load_estado()
+    
     defaults = {
         "modo": "Treino livre",
         "filtro_tema_atual": "Todos",
@@ -51,13 +52,37 @@ def inicializar_estado():
         "revisao_concluida": False,
         "confirmar_finalizar": False,
     }
+    
+    # Carrega histórico do banco
+    st.session_state.historico = db.load_historico()
+    
+    # Sobrescreve com valores salvos (se existirem)
     for k, v in defaults.items():
-        if k not in st.session_state:
+        if k in estado_salvo:
+            st.session_state[k] = estado_salvo[k]
+        elif k not in st.session_state:
             st.session_state[k] = v
-
+    
+    # Reconstroi erros a partir dos IDs salvos
+    st.session_state.erros = db.load_erros(questoes)
+    
+    # Reconstroi acertos
+    st.session_state.acertos = estado_salvo.get('acertos_ids', [])
+    
+    # Verifica se a questão atual existe
+    if st.session_state.questao_atual:
+        ids_questoes = {q['id'] for q in questoes}
+        if st.session_state.questao_atual.get('id') not in ids_questoes:
+            st.session_state.questao_atual = None
 
 inicializar_estado()
 
+# -------------------------------------------------------
+# Persistência
+# -------------------------------------------------------
+def persistir_tudo():
+    db.save_historico(st.session_state.historico)
+    db.save_estado(st.session_state)
 
 # -------------------------------------------------------
 # Resets
@@ -66,7 +91,7 @@ def resetar_treino():
     st.session_state.questao_atual = None
     st.session_state.respondido = False
     st.session_state.resposta_usuario = None
-
+    persistir_tudo()
 
 def resetar_revisao():
     st.session_state.revisao_lista = []
@@ -74,7 +99,7 @@ def resetar_revisao():
     st.session_state.revisao_concluida = False
     st.session_state.respondido = False
     st.session_state.resposta_usuario = None
-
+    persistir_tudo()
 
 def resetar_simulado():
     st.session_state.simulado_questoes = []
@@ -85,7 +110,7 @@ def resetar_simulado():
     st.session_state.simulado_registrado = False
     st.session_state.inicio_simulado = None
     st.session_state.confirmar_finalizar = False
-
+    persistir_tudo()
 
 # -------------------------------------------------------
 # Helpers de questão
@@ -94,24 +119,19 @@ def escolher_questao(lista=None):
     base = lista if lista else questoes
     return random.choice(base) if base else None
 
-
 def adicionar_erro_sem_duplicar(q):
     ids = {e["id"] for e in st.session_state.erros}
     if q["id"] not in ids:
         st.session_state.erros.append(q)
-
+        persistir_tudo()
 
 def remover_erro(q):
     st.session_state.erros = [e for e in st.session_state.erros if e["id"] != q["id"]]
-
+    persistir_tudo()
 
 def registrar_resposta(q, resposta, origem="treino"):
-    """
-    Registra resposta no histórico.
-    resposta=None → não respondida (simulado): acertou=False.
-    """
     correto = (resposta is not None) and (resposta == q["correta"])
-
+    
     registro = {
         "data": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "id": q["id"],
@@ -125,16 +145,16 @@ def registrar_resposta(q, resposta, origem="treino"):
         "origem": origem,
     }
     st.session_state.historico.append(registro)
-
+    
     if correto:
         st.session_state.acertos.append(q["id"])
         if origem == "revisao_erros":
             remover_erro(q)
     else:
         adicionar_erro_sem_duplicar(q)
-
+    
+    persistir_tudo()
     return correto
-
 
 def filtrar_base(tema="Todos", objetivo="Todos"):
     base = questoes
@@ -143,7 +163,6 @@ def filtrar_base(tema="Todos", objetivo="Todos"):
     if objetivo != "Todos":
         base = [q for q in base if q.get("objetivo") == objetivo]
     return base
-
 
 # -------------------------------------------------------
 # Helpers de UI
@@ -158,7 +177,6 @@ def card_questao(q, mostrar_objetivo=True):
             st.write(q["objetivo"])
     st.markdown(q["pergunta"])
 
-
 def alternativas_radio(q, key, index=None):
     return st.radio(
         "Escolha uma alternativa:",
@@ -167,7 +185,6 @@ def alternativas_radio(q, key, index=None):
         index=index,
         key=key,
     )
-
 
 def mostrar_resultado(q, resposta):
     if resposta == q["correta"]:
@@ -180,7 +197,6 @@ def mostrar_resultado(q, resposta):
     with st.expander("Ver explicação", expanded=True):
         st.write(q.get("explicacao", "Sem explicação disponível."))
 
-
 def estatisticas():
     total = len(st.session_state.historico)
     acertos_n = sum(1 for h in st.session_state.historico if h["acertou"])
@@ -188,13 +204,11 @@ def estatisticas():
     taxa = (acertos_n / total * 100) if total else 0.0
     return total, acertos_n, erros_n, taxa
 
-
 LABEL_ORIGEM = {
     "treino": "Treino livre",
     "revisao_erros": "Revisão de erros",
     "simulado": "Simulado",
 }
-
 
 # -------------------------------------------------------
 # Sidebar
@@ -227,6 +241,8 @@ if st.sidebar.button("🗑️ Zerar histórico", use_container_width=True):
     resetar_treino()
     resetar_revisao()
     resetar_simulado()
+    db.save_historico([])
+    db.save_estado(st.session_state)
     st.rerun()
 
 # -------------------------------------------------------
@@ -236,7 +252,6 @@ st.title("📚 Simulador CGA")
 st.caption("Treino, revisão de erros, simulado e dashboard por tema")
 
 temas = sorted({q.get("tema") for q in questoes if q.get("tema")})
-
 
 # =======================================================
 # MODO 1 — Treino livre
@@ -267,6 +282,7 @@ if modo == "Treino livre":
         st.session_state.questao_atual = escolher_questao(base)
         st.session_state.respondido = False
         st.session_state.resposta_usuario = None
+        persistir_tudo()
 
     col1, col2 = st.columns(2)
     with col1:
@@ -274,12 +290,14 @@ if modo == "Treino livre":
             st.session_state.questao_atual = escolher_questao(base)
             st.session_state.respondido = False
             st.session_state.resposta_usuario = None
+            persistir_tudo()
             st.rerun()
     with col2:
         st.metric("Base filtrada", f"{len(base)} questões")
 
     if st.session_state.questao_atual is None:
         st.session_state.questao_atual = escolher_questao(base)
+        persistir_tudo()
 
     q = st.session_state.questao_atual
     if q is None:
@@ -310,8 +328,8 @@ if modo == "Treino livre":
             st.session_state.questao_atual = escolher_questao(base)
             st.session_state.respondido = False
             st.session_state.resposta_usuario = None
+            persistir_tudo()
             st.rerun()
-
 
 # =======================================================
 # MODO 2 — Revisar erros
@@ -342,6 +360,7 @@ elif modo == "Revisar erros":
             st.session_state.revisao_i = 0
             st.session_state.respondido = False
             st.session_state.resposta_usuario = None
+            persistir_tudo()
 
         total_rev = len(st.session_state.revisao_lista)
         i_rev = st.session_state.revisao_i
@@ -389,12 +408,12 @@ elif modo == "Revisar erros":
                         st.session_state.revisao_concluida = True
                     else:
                         st.session_state.revisao_i = nxt
+                    persistir_tudo()
                     st.rerun()
             with col2:
                 if st.button("🔁 Reiniciar revisão", use_container_width=True):
                     resetar_revisao()
                     st.rerun()
-
 
 # =======================================================
 # MODO 3 — Simulado
@@ -440,6 +459,7 @@ elif modo == "Simulado":
             st.session_state.confirmar_finalizar = False
             st.session_state.inicio_simulado = time.time()
             st.session_state.duracao_simulado_min = int(duracao)
+            persistir_tudo()
             st.rerun()
 
     # --- Simulado em andamento ---
@@ -451,6 +471,7 @@ elif modo == "Simulado":
             st.warning("⏰ Tempo encerrado. Finalizando automaticamente.")
             st.session_state.simulado_ativo = False
             st.session_state.simulado_finalizado = True
+            persistir_tudo()
             st.rerun()
 
         min_rest = int(restante // 60)
@@ -460,7 +481,6 @@ elif modo == "Simulado":
         i = st.session_state.simulado_i
         q = sim[i]
 
-        # Cabeçalho
         col_timer, col_prog = st.columns([1, 3])
         col_timer.metric("⏱️ Tempo restante", f"{min_rest:02d}:{seg_rest:02d}")
         with col_prog:
@@ -487,6 +507,7 @@ elif modo == "Simulado":
 
         if resposta_sim is not None:
             st.session_state.simulado_respostas[q["id"]] = resposta_sim
+            persistir_tudo()
 
         st.divider()
         col1, col2, col3 = st.columns(3)
@@ -495,12 +516,14 @@ elif modo == "Simulado":
             if st.button("◀ Anterior", disabled=(i == 0), use_container_width=True):
                 st.session_state.simulado_i -= 1
                 st.session_state.confirmar_finalizar = False
+                persistir_tudo()
                 st.rerun()
 
         with col2:
             if st.button("Próxima ▶", disabled=(i == len(sim) - 1), use_container_width=True):
                 st.session_state.simulado_i += 1
                 st.session_state.confirmar_finalizar = False
+                persistir_tudo()
                 st.rerun()
 
         with col3:
@@ -509,16 +532,19 @@ elif modo == "Simulado":
                 if st.button("🏁 Finalizar", use_container_width=True):
                     if nao_resp_n > 0:
                         st.session_state.confirmar_finalizar = True
+                        persistir_tudo()
                         st.rerun()
                     else:
                         st.session_state.simulado_ativo = False
                         st.session_state.simulado_finalizado = True
+                        persistir_tudo()
                         st.rerun()
             else:
                 if st.button("⚠️ Confirmar mesmo assim", use_container_width=True):
                     st.session_state.simulado_ativo = False
                     st.session_state.simulado_finalizado = True
                     st.session_state.confirmar_finalizar = False
+                    persistir_tudo()
                     st.rerun()
 
         if st.session_state.confirmar_finalizar:
@@ -532,11 +558,11 @@ elif modo == "Simulado":
         sim = st.session_state.simulado_questoes
         respostas = st.session_state.simulado_respostas
 
-        # Registra no histórico uma única vez
         if not st.session_state.simulado_registrado:
             for q_item in sim:
                 registrar_resposta(q_item, respostas.get(q_item["id"]), "simulado")
             st.session_state.simulado_registrado = True
+            persistir_tudo()
 
         acertos_sim = sum(
             1 for q_item in sim
@@ -554,7 +580,6 @@ elif modo == "Simulado":
         c3.metric("Não respondidas", nao_resp)
         st.progress(taxa_sim / 100, text=f"Aproveitamento: {taxa_sim:.1f}%")
 
-        # Correção com abas por status
         with st.expander("📋 Ver correção completa", expanded=False):
 
             def render_correcao(q_item, resp):
@@ -614,7 +639,6 @@ elif modo == "Simulado":
             resetar_simulado()
             st.rerun()
 
-
 # =======================================================
 # MODO 4 — Dashboard
 # =======================================================
@@ -641,7 +665,6 @@ elif modo == "Dashboard":
 
     st.divider()
 
-    # --- Por modo de estudo ---
     st.markdown("### Desempenho por modo de estudo")
     por_origem = (
         df.groupby("origem")
@@ -658,7 +681,6 @@ elif modo == "Dashboard":
 
     st.divider()
 
-    # --- Por tema ---
     st.markdown("### Desempenho por tema")
     tema_df = (
         df.groupby("tema", dropna=False)
@@ -681,7 +703,6 @@ elif modo == "Dashboard":
 
     st.divider()
 
-    # --- Por objetivo ---
     st.markdown("### Desempenho por objetivo")
     obj_df = (
         df.groupby("objetivo", dropna=False)
@@ -707,7 +728,6 @@ elif modo == "Dashboard":
 
     st.divider()
 
-    # --- Evolução temporal ---
     if len(st.session_state.historico) >= 5:
         st.markdown("### Evolução da taxa de acerto — média móvel (janela 10)")
         df["media_movel"] = (
@@ -722,7 +742,6 @@ elif modo == "Dashboard":
 
     st.divider()
 
-    # --- Últimas 10 respostas ---
     st.markdown("### Últimas 10 respostas")
     for h in st.session_state.historico[-10:][::-1]:
         icon = "✅" if h["acertou"] else "❌"
