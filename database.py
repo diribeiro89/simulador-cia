@@ -1,4 +1,3 @@
-# database.py
 import sqlite3
 import json
 from datetime import datetime
@@ -7,10 +6,8 @@ from typing import List, Dict, Any
 DB_PATH = "cga_data.db"
 
 def init_db():
-    """Cria as tabelas se não existirem."""
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
-    # Tabela de histórico
     c.execute('''
         CREATE TABLE IF NOT EXISTS historico (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -26,7 +23,6 @@ def init_db():
             origem TEXT
         )
     ''')
-    # Tabela de estado (apenas uma linha, chave 'state')
     c.execute('''
         CREATE TABLE IF NOT EXISTS estado (
             chave TEXT PRIMARY KEY,
@@ -37,12 +33,9 @@ def init_db():
     conn.close()
 
 def save_historico(historico: List[Dict[str, Any]]):
-    """Substitui todo o histórico pelo novo."""
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
-    # Limpa tabela
     c.execute("DELETE FROM historico")
-    # Insere todos os registros
     for reg in historico:
         c.execute('''
             INSERT INTO historico (
@@ -65,7 +58,6 @@ def save_historico(historico: List[Dict[str, Any]]):
     conn.close()
 
 def load_historico() -> List[Dict[str, Any]]:
-    """Retorna lista de dicionários com o histórico."""
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute('''
@@ -93,10 +85,9 @@ def load_historico() -> List[Dict[str, Any]]:
     return historico
 
 def save_estado(estado: Dict[str, Any]):
-    """Salva o estado atual (modo, filtros, índices, etc.) como JSON."""
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
-    # Serializa apenas as chaves que queremos persistir
+    # Chaves a persistir (incluindo leitner)
     chaves_persistir = [
         'modo', 'filtro_tema_atual', 'filtro_objetivo_atual',
         'questao_atual', 'respondido', 'resposta_usuario',
@@ -104,22 +95,20 @@ def save_estado(estado: Dict[str, Any]):
         'simulado_ativo', 'simulado_finalizado', 'simulado_registrado',
         'inicio_simulado', 'duracao_simulado_min',
         'revisao_lista', 'revisao_i', 'revisao_concluida',
-        'confirmar_finalizar'
+        'confirmar_finalizar',
+        'leitner_niveis',      # NOVO
+        'leitner_proxima'      # NOVO
     ]
     estado_filtrado = {k: estado.get(k) for k in chaves_persistir if k in estado}
-    # Para objetos não serializáveis, convertemos
-    # Exemplo: simulado_questoes é lista de dicts, simulado_respostas é dict
-    # Também precisamos salvar erros e acertos (listas de IDs)
+    # Salvar erros como ids
     estado_filtrado['erros_ids'] = [e['id'] for e in estado.get('erros', [])]
     estado_filtrado['acertos_ids'] = estado.get('acertos', [])
-    # Converte para JSON
     json_str = json.dumps(estado_filtrado, default=str)
     c.execute("REPLACE INTO estado (chave, valor) VALUES (?, ?)", ('state', json_str))
     conn.commit()
     conn.close()
 
 def load_estado() -> Dict[str, Any]:
-    """Carrega o estado salvo, retorna dicionário vazio se não existir."""
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute("SELECT valor FROM estado WHERE chave = ?", ('state',))
@@ -132,20 +121,9 @@ def load_estado() -> Dict[str, Any]:
     except:
         return {}
 
-def save_erros(erros: List[Dict]):
-    """Salva a lista de erros (dicionários completos) como JSON separado? 
-       Podemos salvar apenas IDs e reconstruir a partir do JSON de questões.
-       Mas para simplificar, salvamos os IDs e depois carregamos os objetos completos.
-       Vamos fazer isso dentro de save_estado (já incluímos erros_ids).
-       Então não precisamos de função separada.
-    """
-    pass  # já incluso no save_estado
-
 def load_erros(questoes: List[Dict]) -> List[Dict]:
-    """Reconstrói a lista de erros a partir dos IDs salvos e do banco de questões."""
     estado = load_estado()
     erros_ids = estado.get('erros_ids', [])
-    # Mapeia id -> questão
     mapa = {q['id']: q for q in questoes}
     erros = [mapa[eid] for eid in erros_ids if eid in mapa]
     return erros
