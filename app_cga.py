@@ -160,32 +160,51 @@ def toggle_descarte(q_id, letra):
     persistir_tudo()
 
 def render_alternativas_com_descarte(q, key_prefix):
+    """
+    Exibe cada alternativa uma única vez, com botão para selecionar (se não descartada)
+    e botão para descartar/restaurar ao lado.
+    Retorna a letra selecionada (ou None).
+    """
     descartadas = st.session_state.alternativas_descartadas.get(q['id'], [])
-    opcoes_validas = [letra for letra in q['opcoes'].keys() if letra not in descartadas]
+    opcoes = list(q['opcoes'].keys())
+    resposta_key = f"resposta_{q['id']}"
+    if resposta_key not in st.session_state:
+        st.session_state[resposta_key] = None
     
-    for letra, texto in q['opcoes'].items():
+    # Se a resposta atual estiver descartada, limpa a seleção
+    if st.session_state[resposta_key] in descartadas:
+        st.session_state[resposta_key] = None
+    
+    st.markdown("**Alternativas:**")
+    for letra in opcoes:
+        is_descartada = letra in descartadas
         col1, col2 = st.columns([0.85, 0.15])
         with col1:
-            if letra in descartadas:
-                st.markdown(f"~~{letra}) {texto}~~")
+            label = f"{letra}) {q['opcoes'][letra]}"
+            if is_descartada:
+                # Mostra riscado e desabilitado (sem botão)
+                st.markdown(f"~~{label}~~")
             else:
-                st.markdown(f"{letra}) {texto}")
+                # Botão para selecionar
+                if st.button(label, key=f"sel_{q['id']}_{letra}_{key_prefix}", use_container_width=True):
+                    st.session_state[resposta_key] = letra
+                    st.rerun()
         with col2:
-            btn_label = "↩️" if letra in descartadas else "✖️"
+            btn_label = "↩️" if is_descartada else "✖️"
             if st.button(btn_label, key=f"desc_{q['id']}_{letra}_{key_prefix}"):
                 toggle_descarte(q['id'], letra)
+                # Se descartar a que estava selecionada, limpa a seleção
+                if st.session_state[resposta_key] == letra:
+                    st.session_state[resposta_key] = None
                 st.rerun()
     
-    if opcoes_validas:
-        return st.radio(
-            "Escolha uma alternativa:",
-            opcoes_validas,
-            format_func=lambda x: f"{x}) {q['opcoes'][x]}",
-            key=f"radio_{q['id']}_{key_prefix}",
-        )
+    # Mostra qual está selecionada (se houver)
+    if st.session_state[resposta_key]:
+        st.success(f"✅ Selecionada: {st.session_state[resposta_key]}) {q['opcoes'][st.session_state[resposta_key]]}")
     else:
-        st.warning("Todas as alternativas foram descartadas! Clique em ↩️ para restaurar.")
-        return None
+        st.info("Nenhuma alternativa selecionada.")
+    
+    return st.session_state[resposta_key]
 
 # -------------------------------------------------------
 # Helpers de questão
@@ -566,6 +585,10 @@ elif modo == "Simulado":
         st.divider()
         card_questao(q, mostrar_objetivo=False)
 
+        # No simulado, usamos o mesmo renderizador com descarte (mas sem afetar o histórico de descartes?)
+        # Por simplicidade, vou usar o radio padrão no simulado (sem descarte) para não complicar.
+        # Mas se quiser manter a mesma funcionalidade, descomente a linha abaixo e comente o radio.
+        # resposta_sim = render_alternativas_com_descarte(q, f"sim_{q['id']}_{i}")
         opcoes = list(q["opcoes"].keys())
         escolha_atual = st.session_state.simulado_respostas.get(q["id"])
         idx_atual = opcoes.index(escolha_atual) if escolha_atual in opcoes else None
