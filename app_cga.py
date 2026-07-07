@@ -12,6 +12,50 @@ st.set_page_config(
     layout="centered",
     initial_sidebar_state="collapsed",
 )
+# -------------------------------------------------------
+# CSS customizado para melhor contraste no modo escuro
+# -------------------------------------------------------
+st.markdown("""
+<style>
+    /* Melhora contraste dos botões de seleção no modo escuro */
+    .stButton button {
+        color: #000000 !important;
+        background-color: #f0f0f0 !important;
+        border: 1px solid #cccccc !important;
+    }
+    /* No modo escuro, o Streamlit adiciona data-theme="dark" */
+    [data-theme="dark"] .stButton button {
+        color: #ffffff !important;
+        background-color: #2b2b2b !important;
+        border: 1px solid #555555 !important;
+    }
+    [data-theme="dark"] .stButton button:hover {
+        background-color: #3a3a3a !important;
+        border-color: #888888 !important;
+    }
+    /* Texto das alternativas (não descartadas) - contraste */
+    .stMarkdown p {
+        color: inherit !important;
+    }
+    [data-theme="dark"] .stMarkdown p {
+        color: #e0e0e0 !important;
+    }
+    /* Texto riscado (descartado) - manter legível */
+    [data-theme="dark"] .stMarkdown del {
+        color: #888888 !important;
+    }
+    /* Botões de descarte/restauração */
+    [data-theme="dark"] .stButton button[kind="secondary"] {
+        background-color: #3a3a3a !important;
+        color: #dddddd !important;
+    }
+    /* Mensagem de sucesso (selecionada) - melhor contraste no escuro */
+    [data-theme="dark"] .stAlert {
+        background-color: #1a3a1a !important;
+        color: #aaffaa !important;
+    }
+</style>
+""", unsafe_allow_html=True)
 
 ARQUIVO_QUESTOES = "questoes_cga_todos_temas.json"
 
