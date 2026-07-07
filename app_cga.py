@@ -304,12 +304,12 @@ def render_alternativas_com_descarte(q, key_prefix):
                 st.rerun()
     
     # Mensagem de confirmação (mantemos a original, mas já temos o destaque)
-    if st.session_state[resposta_key]:
+   """ if st.session_state[resposta_key]:
         st.success(f"✅ Selecionada: {st.session_state[resposta_key]}) {q['opcoes'][st.session_state[resposta_key]]}")
     else:
         st.info("Nenhuma alternativa selecionada.")
     
-    return st.session_state[resposta_key]
+    return st.session_state[resposta_key]"""
 
 # -------------------------------------------------------
 # Helpers de questão
