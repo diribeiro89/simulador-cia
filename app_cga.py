@@ -13,45 +13,6 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-# -------------------------------------------------------
-# CSS customizado para melhor contraste no modo escuro
-# -------------------------------------------------------
-st.markdown("""
-<style>
-    /* Melhora contraste dos botões de seleção no modo escuro */
-    .stButton button {
-        color: #000000 !important;
-        background-color: #f0f0f0 !important;
-        border: 1px solid #cccccc !important;
-    }
-    [data-theme="dark"] .stButton button {
-        color: #ffffff !important;
-        background-color: #2b2b2b !important;
-        border: 1px solid #555555 !important;
-    }
-    [data-theme="dark"] .stButton button:hover {
-        background-color: #3a3a3a !important;
-        border-color: #888888 !important;
-    }
-    .stMarkdown p {
-        color: inherit !important;
-    }
-    [data-theme="dark"] .stMarkdown p {
-        color: #e0e0e0 !important;
-    }
-    [data-theme="dark"] .stMarkdown del {
-        color: #888888 !important;
-    }
-    [data-theme="dark"] .stButton button[kind="secondary"] {
-        background-color: #3a3a3a !important;
-        color: #dddddd !important;
-    }
-    [data-theme="dark"] .stAlert {
-        background-color: #1a3a1a !important;
-        color: #aaffaa !important;
-    }
-</style>
-""", unsafe_allow_html=True)
 
 ARQUIVO_QUESTOES = "questoes_cga_todos_temas.json"
 
@@ -67,7 +28,7 @@ questoes = carregar_questoes()
 db.init_db()
 
 # -------------------------------------------------------
-# Configuração da Prova (ANBIMA CGA) – com sub‑proporções
+# Configuração da Prova (ANBIMA CGA) – 45 questões
 # -------------------------------------------------------
 GRUPOS_PROVA = [
     {
@@ -158,7 +119,6 @@ def persistir_tudo():
 # -------------------------------------------------------
 def inicializar_estado():
     estado_salvo = db.load_estado()
-    
     defaults = {
         "modo": "Treino livre",
         "filtro_tema_atual": "Todos",
@@ -194,20 +154,16 @@ def inicializar_estado():
         "prova_duracao_min": TEMPO_PROVA_MIN,
         "prova_tempo_restante": None,
     }
-    
     for k, v in defaults.items():
         if k not in st.session_state:
             st.session_state[k] = v
-    
     for k, v in estado_salvo.items():
         if k in st.session_state:
             st.session_state[k] = v
-    
     st.session_state.historico = db.load_historico()
     st.session_state.erros = db.load_erros(questoes)
     st.session_state.leitner = db.load_leitner()
     st.session_state.alternativas_descartadas = db.load_descartes()
-    
     if st.session_state.questao_atual:
         ids_questoes = {q["id"] for q in questoes}
         if st.session_state.questao_atual.get("id") not in ids_questoes:
@@ -283,7 +239,7 @@ def obter_questoes_para_revisar():
     return [mapa[id] for id in ids_revisar if id in mapa]
 
 # -------------------------------------------------------
-# Descartar alternativas (sem mensagem de seleção)
+# Descartar alternativas (COM DESTAQUE VISUAL)
 # -------------------------------------------------------
 def toggle_descarte(q_id, letra):
     if q_id not in st.session_state.alternativas_descartadas:
@@ -296,32 +252,49 @@ def toggle_descarte(q_id, letra):
     persistir_tudo()
 
 def render_alternativas_com_descarte(q, key_prefix):
-    """
-    Exibe as alternativas com botões para selecionar e para descartar/restaurar.
-    A seleção é armazenada internamente, mas não é mostrada uma mensagem extra.
-    Retorna a letra selecionada (ou None).
-    """
     descartadas = st.session_state.alternativas_descartadas.get(q['id'], [])
     opcoes = list(q['opcoes'].keys())
     resposta_key = f"resposta_{q['id']}_{key_prefix}"
     if resposta_key not in st.session_state:
         st.session_state[resposta_key] = None
     
+    # Se a seleção atual foi descartada, limpa
     if st.session_state[resposta_key] in descartadas:
         st.session_state[resposta_key] = None
     
     st.markdown("**Alternativas:**")
     for letra in opcoes:
         is_descartada = letra in descartadas
+        is_selecionada = (st.session_state[resposta_key] == letra)
+        
         col1, col2 = st.columns([0.85, 0.15])
         with col1:
             label = f"{letra}) {q['opcoes'][letra]}"
             if is_descartada:
+                # Descartada: mostra riscado
                 st.markdown(f"~~{label}~~")
             else:
-                if st.button(label, key=f"sel_{q['id']}_{letra}_{key_prefix}", use_container_width=True):
-                    st.session_state[resposta_key] = letra
-                    st.rerun()
+                # Se estiver selecionada, aplica estilo verde escuro com texto verde claro
+                if is_selecionada:
+                    # Usa HTML para criar um botão estilizado (ou um container)
+                    st.markdown(f"""
+                        <div style="
+                            background-color: #0d3b0d; 
+                            color: #9aff9a; 
+                            padding: 8px 12px; 
+                            border-radius: 8px; 
+                            border: 1px solid #2a7a2a; 
+                            font-weight: bold;
+                            cursor: default;
+                        ">
+                        {label}
+                        </div>
+                    """, unsafe_allow_html=True)
+                else:
+                    # Botão normal
+                    if st.button(label, key=f"sel_{q['id']}_{letra}_{key_prefix}", use_container_width=True):
+                        st.session_state[resposta_key] = letra
+                        st.rerun()
         with col2:
             btn_label = "↩️" if is_descartada else "✖️"
             if st.button(btn_label, key=f"desc_{q['id']}_{letra}_{key_prefix}"):
@@ -330,7 +303,12 @@ def render_alternativas_com_descarte(q, key_prefix):
                     st.session_state[resposta_key] = None
                 st.rerun()
     
-    # NÃO exibe mais a mensagem de seleção
+    # Mensagem de confirmação (mantemos a original, mas já temos o destaque)
+    if st.session_state[resposta_key]:
+        st.success(f"✅ Selecionada: {st.session_state[resposta_key]}) {q['opcoes'][st.session_state[resposta_key]]}")
+    else:
+        st.info("Nenhuma alternativa selecionada.")
+    
     return st.session_state[resposta_key]
 
 # -------------------------------------------------------
@@ -352,10 +330,8 @@ def remover_erro(q):
 
 def registrar_resposta(q, resposta, origem="treino"):
     correto = (resposta is not None) and (resposta == q["correta"])
-    
     if origem == "revisao_erros":
         atualizar_leitner(q['id'], correto)
-    
     registro = {
         "data": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "id": q["id"],
@@ -369,14 +345,12 @@ def registrar_resposta(q, resposta, origem="treino"):
         "origem": origem,
     }
     st.session_state.historico.append(registro)
-    
     if correto:
         st.session_state.acertos.append(q["id"])
         if origem == "revisao_erros":
             remover_erro(q)
     else:
         adicionar_erro_sem_duplicar(q)
-    
     persistir_tudo()
     return correto
 
@@ -476,7 +450,6 @@ temas = sorted({q.get("tema") for q in questoes if q.get("tema")})
 # =======================================================
 if modo == "Treino livre":
     st.subheader("Treino livre")
-
     filtro_tema = st.selectbox("Filtrar por tema", ["Todos"] + temas)
     objetivos_disp = sorted({
         q.get("objetivo") for q in questoes
@@ -714,7 +687,6 @@ elif modo == "Simulado":
         st.divider()
         card_questao(q, mostrar_objetivo=False)
 
-        # No simulado, usamos o mesmo componente com radio (mas sem mensagem extra)
         resposta_sim = render_alternativas_com_descarte(q, f"sim_{q['id']}_{i}")
 
         if resposta_sim is not None:
@@ -867,12 +839,12 @@ elif modo == "Prova":
                 grupos_dict[grupo] = []
             grupos_dict[grupo].append((item["tema_json"], item["quantidade"]))
         
-        for i, (grupo, temas) in enumerate(grupos_dict.items(), start=1):
+        for grupo, temas in grupos_dict.items():
             if len(temas) == 1:
                 tema, qtd = temas[0]
-                st.write(f"{i:02d} - {grupo}: {qtd} questões")
+                st.write(f"- {grupo}: {qtd} questões ({tema})")
             else:
-                st.write(f"{i:02d} - {grupo}:")
+                st.write(f"- {grupo}:")
                 for tema, qtd in temas:
                     st.write(f"    - {tema}: {qtd} questões")
         
@@ -1040,12 +1012,12 @@ elif modo == "Prova":
             ordem_grupos.append("Outros")
 
         dados_tabela = []
-        corretas_por_id = {q["id"]: q["correta"] for q in prov}
         for grupo in ordem_grupos:
             if grupo not in grupos_ids:
                 continue
             ids_questoes = grupos_ids[grupo]
             total = len(ids_questoes)
+            corretas_por_id = {q["id"]: q["correta"] for q in prov}
             acertos = sum(1 for qid in ids_questoes if respostas.get(qid) == corretas_por_id.get(qid))
             pct = (acertos / total * 100) if total else 0.0
             dados_tabela.append({
@@ -1062,8 +1034,6 @@ elif modo == "Prova":
                 use_container_width=True,
                 hide_index=True,
             )
-        else:
-            st.info("Nenhum dado para exibir.")
 
         with st.expander("📋 Ver correção completa", expanded=False):
             def render_correcao(q_item, resp):
