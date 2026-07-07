@@ -258,7 +258,6 @@ def render_alternativas_com_descarte(q, key_prefix):
     if resposta_key not in st.session_state:
         st.session_state[resposta_key] = None
     
-    # Se a seleção atual foi descartada, limpa
     if st.session_state[resposta_key] in descartadas:
         st.session_state[resposta_key] = None
     
@@ -271,12 +270,10 @@ def render_alternativas_com_descarte(q, key_prefix):
         with col1:
             label = f"{letra}) {q['opcoes'][letra]}"
             if is_descartada:
-                # Descartada: mostra riscado
                 st.markdown(f"~~{label}~~")
             else:
-                # Se estiver selecionada, aplica estilo verde escuro com texto verde claro
                 if is_selecionada:
-                    # Usa HTML para criar um botão estilizado (ou um container)
+                    # Estilo de destaque (verde escuro com texto verde claro)
                     st.markdown(f"""
                         <div style="
                             background-color: #0d3b0d; 
@@ -291,7 +288,6 @@ def render_alternativas_com_descarte(q, key_prefix):
                         </div>
                     """, unsafe_allow_html=True)
                 else:
-                    # Botão normal
                     if st.button(label, key=f"sel_{q['id']}_{letra}_{key_prefix}", use_container_width=True):
                         st.session_state[resposta_key] = letra
                         st.rerun()
@@ -303,13 +299,13 @@ def render_alternativas_com_descarte(q, key_prefix):
                     st.session_state[resposta_key] = None
                 st.rerun()
     
-    # Mensagem de confirmação (mantemos a original, mas já temos o destaque)
-    """if st.session_state[resposta_key]:
-        st.success(f"✅ Selecionada: {st.session_state[resposta_key]}) {q['opcoes'][st.session_state[resposta_key]]}")
-    else:
-        st.info("Nenhuma alternativa selecionada.")
+    # --- MENSAGENS REMOVIDAS ---
+    # if st.session_state[resposta_key]:
+    #     st.success(f"✅ Selecionada: {st.session_state[resposta_key]}) {q['opcoes'][st.session_state[resposta_key]]}")
+    # else:
+    #     st.info("Nenhuma alternativa selecionada.")
     
-    return st.session_state[resposta_key]"""
+    return st.session_state[resposta_key]
 
 # -------------------------------------------------------
 # Helpers de questão
