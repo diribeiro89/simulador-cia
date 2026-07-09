@@ -154,6 +154,11 @@ def inicializar_estado():
         "prova_tempo_restante": None,
         "destacadas": db.carregar_destacadas(),  # carrega do banco
         "confirmar_zerar": False,
+        # Novos campos para revisão interativa de destacadas
+        "destacada_lista": [],
+        "destacada_i": 0,
+        "destacada_respondido": False,
+        "destacada_resposta": None,
     }
     for k, v in defaults.items():
         if k not in st.session_state:
@@ -213,6 +218,12 @@ def resetar_prova():
     st.session_state.inicio_prova = None
     st.session_state.confirmar_finalizar = False
     persistir_tudo()
+
+def resetar_destacada():
+    st.session_state.destacada_lista = []
+    st.session_state.destacada_i = 0
+    st.session_state.destacada_respondido = False
+    st.session_state.destacada_resposta = None
 
 # -------------------------------------------------------
 # Leitner
@@ -425,6 +436,8 @@ modo = st.sidebar.radio(
 
 if modo != st.session_state.modo:
     st.session_state.modo = modo
+    if modo != "Questões Destacadas":
+        resetar_destacada()
     resetar_treino()
     persistir_tudo()
     st.rerun()
@@ -457,6 +470,7 @@ if st.session_state.confirmar_zerar:
                     resetar_revisao()
                     resetar_simulado()
                     resetar_prova()
+                    resetar_destacada()
                     db.save_historico([])
                     db.save_estado(st.session_state)
                     db.limpar_provas()
@@ -1247,41 +1261,106 @@ elif modo == "Histórico de Provas":
                     st.write(f"- {modulo}: {dados['acertos']}/{dados['total']} ({pct:.1f}%)")
 
 # =======================================================
-# MODO 6 — Questões Destacadas
+# MODO 6 — Questões Destacadas (com resposta interativa)
 # =======================================================
 elif modo == "Questões Destacadas":
-    st.subheader("⭐ Questões Destacadas")
+    st.subheader("⭐ Revisão de Questões Destacadas")
     
     if not st.session_state.destacadas:
         st.info("Nenhuma questão destacada. Marque questões com o botão ⭐ durante os estudos.")
         st.stop()
     
-    # Lista de questões destacadas (ordem aleatória ou por data)
-    ids_destacadas = list(st.session_state.destacadas)
-    # Carregar as questões completas
-    mapa = {q['id']: q for q in questoes}
-    questions = [mapa[qid] for qid in ids_destacadas if qid in mapa]
+    # Preparar lista de questões (apenas uma vez por sessão)
+    if not st.session_state.destacada_lista:
+        mapa = {q['id']: q for q in questoes}
+        questions = [mapa[qid] for qid in st.session_state.destacadas if qid in mapa]
+        if not questions:
+            st.info("As questões destacadas não foram encontradas no banco.")
+            st.stop()
+        st.session_state.destacada_lista = questions
+        random.shuffle(st.session_state.destacada_lista)
+        st.session_state.destacada_i = 0
+        st.session_state.destacada_respondido = False
+        st.session_state.destacada_resposta = None
     
-    if not questions:
-        st.info("As questões destacadas não foram encontradas no banco.")
+    total = len(st.session_state.destacada_lista)
+    i = st.session_state.destacada_i
+    
+    if i >= total:
+        st.success("🎉 Você revisou todas as questões destacadas!")
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("🔄 Recomeçar", use_container_width=True):
+                resetar_destacada()
+                st.rerun()
+        with col2:
+            if st.button("🗑️ Limpar lista", use_container_width=True):
+                st.session_state.destacada_lista = []
+                st.session_state.destacada_i = 0
+                st.rerun()
         st.stop()
     
-    # Opção de revisão aleatória
-    if st.button("🔀 Embaralhar", use_container_width=True):
-        random.shuffle(questions)
-        st.rerun()
+    q = st.session_state.destacada_lista[i]
     
-    # Mostrar cada questão com suas alternativas e opção de remover destaque
-    for idx, q in enumerate(questions):
-        with st.expander(f"Q{idx+1} — {q['codigo']} | {q.get('tema', '')}"):
-            card_questao(q, mostrar_objetivo=True, mostrar_destaque=False)
-            # Exibe as alternativas sem interação (apenas leitura)
-            st.markdown("**Alternativas:**")
-            for letra, texto in q['opcoes'].items():
-                st.write(f"{letra}) {texto}")
-            # Botão para remover destaque
-            if st.button("⭐ Remover destaque", key=f"remover_dest_{q['id']}"):
+    # Progresso
+    st.progress((i + 1) / total, text=f"Questão {i+1} de {total}")
+    
+    st.divider()
+    card_questao(q, mostrar_objetivo=True, mostrar_destaque=True)
+    
+    # Alternativas interativas (radio simples, sem descarte)
+    opcoes = list(q['opcoes'].keys())
+    resposta_key = f"destacada_{q['id']}"
+    if resposta_key not in st.session_state:
+        st.session_state[resposta_key] = None
+    
+    selected = st.radio(
+        "Escolha uma alternativa:",
+        opcoes,
+        format_func=lambda x: f"{x}) {q['opcoes'][x]}",
+        key=f"radio_dest_{q['id']}_{i}",
+        index=None
+    )
+    st.session_state[resposta_key] = selected
+    
+    if not st.session_state.destacada_respondido:
+        if st.button("✅ Responder", use_container_width=True):
+            if selected is None:
+                st.warning("Selecione uma alternativa.")
+            else:
+                st.session_state.destacada_resposta = selected
+                st.session_state.destacada_respondido = True
+                # Registrar resposta (apenas para estatística, não entra nos erros)
+                # Opcional: podemos chamar registrar_resposta com origem="destacada"
+                # Para não poluir o histórico, podemos apenas mostrar o resultado
+                st.rerun()
+    else:
+        # Mostrar resultado
+        correto = (st.session_state.destacada_resposta == q["correta"])
+        if correto:
+            st.success("✅ Correto!")
+        else:
+            st.error(f"❌ Errado — correta: **{q['correta']}**) {q['opcoes'][q['correta']]}")
+        with st.expander("Ver explicação", expanded=True):
+            st.write(q.get("explicacao", "Sem explicação disponível."))
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("➡️ Próxima", use_container_width=True):
+                st.session_state.destacada_i += 1
+                st.session_state.destacada_respondido = False
+                st.session_state.destacada_resposta = None
+                st.rerun()
+        with col2:
+            if st.button("⭐ Remover destaque", use_container_width=True):
                 toggle_destaque(q['id'])
+                # Remover da lista atual
+                st.session_state.destacada_lista = [item for item in st.session_state.destacada_lista if item['id'] != q['id']]
+                # Ajustar índice se necessário
+                if st.session_state.destacada_i >= len(st.session_state.destacada_lista):
+                    st.session_state.destacada_i = max(0, len(st.session_state.destacada_lista) - 1)
+                st.session_state.destacada_respondido = False
+                st.session_state.destacada_resposta = None
                 st.rerun()
 
 # =======================================================
