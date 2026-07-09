@@ -35,7 +35,7 @@ def init_db():
         )
     ''')
     
-    # Leitner (nível e próxima revisão por questão)
+    # Leitner
     c.execute('''
         CREATE TABLE IF NOT EXISTS leitner (
             questao_id INTEGER PRIMARY KEY,
@@ -44,11 +44,35 @@ def init_db():
         )
     ''')
     
-    # Descartar alternativas (armazena lista de letras descartadas por questão)
+    # Descartar alternativas
     c.execute('''
         CREATE TABLE IF NOT EXISTS descartes (
             questao_id INTEGER PRIMARY KEY,
-            letras TEXT   -- JSON array, ex: '["A", "C"]'
+            letras TEXT
+        )
+    ''')
+    
+    # Provas
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS provas (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            data TEXT,
+            duracao_segundos INTEGER,
+            total_questoes INTEGER,
+            total_acertos INTEGER
+        )
+    ''')
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS respostas_prova (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            prova_id INTEGER,
+            questao_id INTEGER,
+            tema TEXT,
+            codigo TEXT,
+            modulo TEXT,
+            resposta TEXT,
+            correta TEXT,
+            FOREIGN KEY(prova_id) REFERENCES provas(id)
         )
     ''')
     
@@ -148,7 +172,7 @@ def load_estado() -> Dict[str, Any]:
         return {}
 
 # -------------------------------------------------------
-# Erros (reconstrução a partir dos IDs)
+# Erros
 # -------------------------------------------------------
 def load_erros(questoes: List[Dict]) -> List[Dict]:
     estado = load_estado()
@@ -208,38 +232,12 @@ def load_descartes() -> Dict[int, List[str]]:
             result[qid] = []
     return result
 
-# ===================== PROVAS =====================
+# -------------------------------------------------------
+# Provas
+# -------------------------------------------------------
 def salvar_prova(prova_data, respostas):
-    """
-    prova_data: dict com chaves: data, duracao_segundos, total_questoes, total_acertos
-    respostas: lista de dict com: questao_id, resposta, correta, tema, codigo, modulo
-    """
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
-    # Cria tabela se não existir
-    c.execute('''
-        CREATE TABLE IF NOT EXISTS provas (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            data TEXT,
-            duracao_segundos INTEGER,
-            total_questoes INTEGER,
-            total_acertos INTEGER
-        )
-    ''')
-    c.execute('''
-        CREATE TABLE IF NOT EXISTS respostas_prova (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            prova_id INTEGER,
-            questao_id INTEGER,
-            tema TEXT,
-            codigo TEXT,
-            modulo TEXT,
-            resposta TEXT,
-            correta TEXT,
-            FOREIGN KEY(prova_id) REFERENCES provas(id)
-        )
-    ''')
-    # Insere a prova
     c.execute('''
         INSERT INTO provas (data, duracao_segundos, total_questoes, total_acertos)
         VALUES (?, ?, ?, ?)
@@ -250,7 +248,6 @@ def salvar_prova(prova_data, respostas):
         prova_data['total_acertos']
     ))
     prova_id = c.lastrowid
-    # Insere as respostas
     for resp in respostas:
         c.execute('''
             INSERT INTO respostas_prova (prova_id, questao_id, tema, codigo, modulo, resposta, correta)
@@ -269,7 +266,6 @@ def salvar_prova(prova_data, respostas):
     return prova_id
 
 def carregar_provas():
-    """Retorna lista de dicionários com os metadados de todas as provas."""
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute('''
@@ -291,7 +287,6 @@ def carregar_provas():
     return provas
 
 def carregar_respostas_prova(prova_id):
-    """Retorna lista de respostas da prova."""
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute('''
@@ -312,3 +307,12 @@ def carregar_respostas_prova(prova_id):
             'correta': row[5]
         })
     return respostas
+
+def limpar_provas():
+    """Remove todas as provas e respostas do banco."""
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("DELETE FROM respostas_prova")
+    c.execute("DELETE FROM provas")
+    conn.commit()
+    conn.close()
