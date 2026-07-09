@@ -1090,7 +1090,52 @@ elif modo == "Prova":
             st.rerun()
 
 # =======================================================
-# MODO 5 — Dashboard
+# MODO 5 — Histórico de Provas
+# =======================================================
+elif modo == "Histórico de Provas":
+    st.subheader("📚 Histórico de Provas Realizadas")
+    
+    provas = db.carregar_provas()
+    if not provas:
+        st.info("Nenhuma prova realizada ainda. Complete uma prova para ver o histórico.")
+        st.stop()
+    
+    for prova in provas:
+        data_str = datetime.strptime(prova['data'], "%Y-%m-%d %H:%M:%S").strftime("%d/%m/%Y %H:%M")
+        duracao = prova['duracao_segundos']
+        minutos = duracao // 60
+        segundos = duracao % 60
+        with st.expander(f"📅 {data_str}  |  {prova['total_acertos']}/{prova['total_questoes']} acertos  |  ⏱️ {minutos}m {segundos}s"):
+            # Carrega respostas
+            respostas = db.carregar_respostas_prova(prova['id'])
+            if not respostas:
+                st.warning("Detalhes não disponíveis.")
+            else:
+                # Exibe correção estilo a prova finalizada
+                st.markdown("**Correção detalhada:**")
+                for resp in respostas:
+                    correto = (resp['resposta'] == resp['correta'])
+                    num = resp['questao_id']
+                    if correto:
+                        st.success(f"✅ Q{num} — {resp['codigo']} ({resp['modulo']}): correto ({resp['resposta']})")
+                    else:
+                        st.error(f"❌ Q{num} — {resp['codigo']} ({resp['modulo']}): marcou **{resp['resposta']}** | correta: **{resp['correta']}**")
+                # Mostra estatísticas por módulo
+                st.markdown("**Desempenho por módulo:**")
+                modulos = {}
+                for resp in respostas:
+                    modulo = resp['modulo']
+                    if modulo not in modulos:
+                        modulos[modulo] = {'total': 0, 'acertos': 0}
+                    modulos[modulo]['total'] += 1
+                    if resp['resposta'] == resp['correta']:
+                        modulos[modulo]['acertos'] += 1
+                for modulo, dados in modulos.items():
+                    pct = dados['acertos'] / dados['total'] * 100 if dados['total'] else 0
+                    st.write(f"- {modulo}: {dados['acertos']}/{dados['total']} ({pct:.1f}%)")
+
+# =======================================================
+# MODO 6 — Dashboard
 # =======================================================
 elif modo == "Dashboard":
     st.subheader("Dashboard de desempenho")
