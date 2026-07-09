@@ -152,13 +152,20 @@ def inicializar_estado():
         "inicio_prova": None,
         "prova_duracao_min": TEMPO_PROVA_MIN,
         "prova_tempo_restante": None,
-        "destacadas": db.carregar_destacadas(),  # carrega do banco
+        "destacadas": db.carregar_destacadas(),
         "confirmar_zerar": False,
-        # Novos campos para revisão interativa de destacadas
+        # Navegação livre em revisão e destacadas
+        "revisao_respondido": False,
+        "revisao_resposta": None,
         "destacada_lista": [],
         "destacada_i": 0,
         "destacada_respondido": False,
         "destacada_resposta": None,
+        # Buscar questão
+        "busca_codigo": "",
+        "busca_questao": None,
+        "busca_respondido": False,
+        "busca_resposta": None,
     }
     for k, v in defaults.items():
         if k not in st.session_state:
@@ -170,7 +177,6 @@ def inicializar_estado():
     st.session_state.erros = db.load_erros(questoes)
     st.session_state.leitner = db.load_leitner()
     st.session_state.alternativas_descartadas = db.load_descartes()
-    # recarregar destacadas para garantir
     st.session_state.destacadas = db.carregar_destacadas()
     if st.session_state.questao_atual:
         ids_questoes = {q["id"] for q in questoes}
@@ -192,8 +198,8 @@ def resetar_revisao():
     st.session_state.revisao_lista = []
     st.session_state.revisao_i = 0
     st.session_state.revisao_concluida = False
-    st.session_state.respondido = False
-    st.session_state.resposta_usuario = None
+    st.session_state.revisao_respondido = False
+    st.session_state.revisao_resposta = None
     persistir_tudo()
 
 def resetar_simulado():
@@ -225,6 +231,12 @@ def resetar_destacada():
     st.session_state.destacada_respondido = False
     st.session_state.destacada_resposta = None
 
+def resetar_busca():
+    st.session_state.busca_codigo = ""
+    st.session_state.busca_questao = None
+    st.session_state.busca_respondido = False
+    st.session_state.busca_resposta = None
+
 # -------------------------------------------------------
 # Leitner
 # -------------------------------------------------------
@@ -253,7 +265,7 @@ def obter_questoes_para_revisar():
     return [mapa[id] for id in ids_revisar if id in mapa]
 
 # -------------------------------------------------------
-# Descartar alternativas (COM DESTAQUE VISUAL)
+# Descartar alternativas
 # -------------------------------------------------------
 def toggle_descarte(q_id, letra):
     if q_id not in st.session_state.alternativas_descartadas:
@@ -315,7 +327,7 @@ def render_alternativas_com_descarte(q, key_prefix):
     return st.session_state[resposta_key]
 
 # -------------------------------------------------------
-# Destaques (salvar no banco)
+# Destaques
 # -------------------------------------------------------
 def toggle_destaque(q_id):
     if q_id in st.session_state.destacadas:
@@ -346,9 +358,31 @@ def card_questao(q, mostrar_objetivo=True, mostrar_destaque=False):
             st.write(q["objetivo"])
     st.markdown(q["pergunta"])
 
-# -------------------------------------------------------
-# Helpers de questão
-# -------------------------------------------------------
+def mostrar_resultado(q, resposta):
+    if resposta == q["correta"]:
+        st.success("✅ Correto!")
+    else:
+        st.error(
+            f"❌ Errado — correta: **{q['correta']}**) "
+            f"{q['opcoes'][q['correta']]}"
+        )
+    with st.expander("Ver explicação", expanded=True):
+        st.write(q.get("explicacao", "Sem explicação disponível."))
+
+def estatisticas():
+    total = len(st.session_state.historico)
+    acertos_n = sum(1 for h in st.session_state.historico if h["acertou"])
+    erros_n = total - acertos_n
+    taxa = (acertos_n / total * 100) if total else 0.0
+    return total, acertos_n, erros_n, taxa
+
+LABEL_ORIGEM = {
+    "treino": "Treino livre",
+    "revisao_erros": "Revisão de erros",
+    "simulado": "Simulado",
+    "prova": "Prova ANBIMA",
+}
+
 def escolher_questao(lista=None):
     base = lista if lista else questoes
     return random.choice(base) if base else None
@@ -397,37 +431,21 @@ def filtrar_base(tema="Todos", objetivo="Todos"):
         base = [q for q in base if q.get("objetivo") == objetivo]
     return base
 
-def mostrar_resultado(q, resposta):
-    if resposta == q["correta"]:
-        st.success("✅ Correto!")
-    else:
-        st.error(
-            f"❌ Errado — correta: **{q['correta']}**) "
-            f"{q['opcoes'][q['correta']]}"
-        )
-    with st.expander("Ver explicação", expanded=True):
-        st.write(q.get("explicacao", "Sem explicação disponível."))
-
-def estatisticas():
-    total = len(st.session_state.historico)
-    acertos_n = sum(1 for h in st.session_state.historico if h["acertou"])
-    erros_n = total - acertos_n
-    taxa = (acertos_n / total * 100) if total else 0.0
-    return total, acertos_n, erros_n, taxa
-
-LABEL_ORIGEM = {
-    "treino": "Treino livre",
-    "revisao_erros": "Revisão de erros",
-    "simulado": "Simulado",
-    "prova": "Prova ANBIMA",
-}
-
 # -------------------------------------------------------
-# Sidebar (com confirmação de senha)
+# Sidebar
 # -------------------------------------------------------
 st.sidebar.title("📚 Simulador CGA")
 
-modo_options = ["Treino livre", "Revisar erros", "Simulado", "Prova", "Histórico de Provas", "Questões Destacadas", "Dashboard"]
+modo_options = [
+    "Treino livre",
+    "Revisar erros",
+    "Simulado",
+    "Prova",
+    "Histórico de Provas",
+    "Questões Destacadas",
+    "Buscar Questão",
+    "Dashboard"
+]
 modo = st.sidebar.radio(
     "Modo de estudo",
     modo_options,
@@ -436,8 +454,10 @@ modo = st.sidebar.radio(
 
 if modo != st.session_state.modo:
     st.session_state.modo = modo
-    if modo != "Questões Destacadas":
+    if modo == "Questões Destacadas":
         resetar_destacada()
+    elif modo == "Buscar Questão":
+        resetar_busca()
     resetar_treino()
     persistir_tudo()
     st.rerun()
@@ -450,7 +470,6 @@ st.sidebar.metric("⭐ Destacadas", len(st.session_state.destacadas))
 
 st.sidebar.divider()
 
-# Botão zerar com confirmação de senha
 if st.sidebar.button("🗑️ Zerar histórico", use_container_width=True):
     st.session_state.confirmar_zerar = True
 
@@ -471,6 +490,7 @@ if st.session_state.confirmar_zerar:
                     resetar_simulado()
                     resetar_prova()
                     resetar_destacada()
+                    resetar_busca()
                     db.save_historico([])
                     db.save_estado(st.session_state)
                     db.limpar_provas()
@@ -489,7 +509,7 @@ if st.session_state.confirmar_zerar:
 # Cabeçalho
 # -------------------------------------------------------
 st.title("📚 Simulador CGA")
-st.caption("Treino, revisão de erros, simulado, prova ANBIMA e dashboard")
+st.caption("Treino, revisão, simulado, prova, histórico, destacadas e busca")
 
 temas = sorted({q.get("tema") for q in questoes if q.get("tema")})
 
@@ -567,97 +587,75 @@ if modo == "Treino livre":
             st.rerun()
 
 # =======================================================
-# MODO 2 — Revisar erros (com Leitner)
+# MODO 2 — Revisar erros (com navegação livre)
 # =======================================================
 elif modo == "Revisar erros":
     st.subheader("Revisar erros (Leitner)")
 
-    questoes_revisar = obter_questoes_para_revisar()
-    if not questoes_revisar and st.session_state.erros:
-        st.info("Nenhum erro precisa ser revisado hoje. Volte amanhã ou clique em 'Revisar todos'.")
-    elif not st.session_state.erros:
-        st.info("Você não tem erros salvos. Responda questões para começar.")
-
-    if st.button("🔁 Revisar todos os erros agora", use_container_width=True):
-        st.session_state.revisao_lista = st.session_state.erros.copy()
+    # Preparar lista de revisão (todos os erros ou agendados)
+    if not st.session_state.revisao_lista:
+        questoes_revisar = obter_questoes_para_revisar()
+        if questoes_revisar:
+            st.session_state.revisao_lista = questoes_revisar
+        else:
+            st.session_state.revisao_lista = st.session_state.erros.copy()
         random.shuffle(st.session_state.revisao_lista)
         st.session_state.revisao_i = 0
-        st.session_state.revisao_concluida = False
-        st.session_state.respondido = False
-        st.session_state.resposta_usuario = None
-        persistir_tudo()
-        st.rerun()
+        st.session_state.revisao_respondido = False
+        st.session_state.revisao_resposta = None
 
-    if st.session_state.revisao_concluida:
-        st.success("🎉 Revisão concluída! Você passou por todos os erros desta sessão.")
-        col_a, col_b = st.columns(2)
-        with col_a:
-            if st.button("🔁 Revisar novamente", use_container_width=True):
-                resetar_revisao()
+    if not st.session_state.revisao_lista:
+        st.info("Você não tem erros salvos ou agendados para revisar.")
+        st.stop()
+
+    total_rev = len(st.session_state.revisao_lista)
+    i_rev = st.session_state.revisao_i
+
+    # Controles de navegação (superior)
+    col_prev, col_pos, col_info = st.columns([1, 1, 2])
+    with col_prev:
+        if st.button("◀ Anterior", disabled=(i_rev == 0), use_container_width=True):
+            st.session_state.revisao_i -= 1
+            st.session_state.revisao_respondido = False
+            st.session_state.revisao_resposta = None
+            st.rerun()
+    with col_pos:
+        if st.button("Próxima ▶", disabled=(i_rev >= total_rev - 1), use_container_width=True):
+            st.session_state.revisao_i += 1
+            st.session_state.revisao_respondido = False
+            st.session_state.revisao_resposta = None
+            st.rerun()
+    with col_info:
+        st.caption(f"Questão {i_rev + 1} de {total_rev}")
+
+    q = st.session_state.revisao_lista[i_rev]
+
+    st.divider()
+    card_questao(q, mostrar_destaque=True)
+
+    resposta = render_alternativas_com_descarte(q, f"rev_{q['id']}_{i_rev}")
+
+    if not st.session_state.revisao_respondido:
+        if st.button("✅ Responder", use_container_width=True):
+            if resposta is None:
+                st.warning("Selecione uma alternativa antes de responder.")
+            else:
+                st.session_state.revisao_resposta = resposta
+                st.session_state.revisao_respondido = True
+                registrar_resposta(q, resposta, "revisao_erros")
+                persistir_tudo()
                 st.rerun()
-        with col_b:
-            st.metric("Erros ainda salvos", len(st.session_state.erros))
     else:
-        if not st.session_state.revisao_lista and questoes_revisar:
-            st.session_state.revisao_lista = questoes_revisar
-            random.shuffle(st.session_state.revisao_lista)
-            st.session_state.revisao_i = 0
-            st.session_state.respondido = False
-            st.session_state.resposta_usuario = None
-            persistir_tudo()
-
-        if not st.session_state.revisao_lista:
-            st.stop()
-
-        total_rev = len(st.session_state.revisao_lista)
-        i_rev = st.session_state.revisao_i
-
-        if total_rev == 0:
-            st.success("Nenhum erro pendente para revisar.")
-            st.stop()
-
-        st.caption(f"Revisando {total_rev} erros agendados.")
-        st.progress(
-            (i_rev + 1) / total_rev,
-            text=f"Erro {i_rev + 1} de {total_rev}",
-        )
-
-        q = st.session_state.revisao_lista[i_rev]
-        st.divider()
-        card_questao(q, mostrar_destaque=True)
-
-        resposta = render_alternativas_com_descarte(q, f"rev_{q['id']}_{i_rev}")
-
-        if not st.session_state.respondido:
-            if st.button("✅ Responder", use_container_width=True):
-                if resposta is None:
-                    st.warning("Selecione uma alternativa antes de responder.")
-                else:
-                    st.session_state.resposta_usuario = resposta
-                    st.session_state.respondido = True
-                    registrar_resposta(q, resposta, "revisao_erros")
-                    persistir_tudo()
-                    st.rerun()
-        else:
-            mostrar_resultado(q, st.session_state.resposta_usuario)
-            col1, col2 = st.columns(2)
-            with col1:
-                if st.button("➡️ Próximo erro", use_container_width=True):
-                    nxt = i_rev + 1
-                    st.session_state.respondido = False
-                    st.session_state.resposta_usuario = None
-                    if nxt >= total_rev:
-                        st.session_state.revisao_lista = []
-                        st.session_state.revisao_i = 0
-                        st.session_state.revisao_concluida = True
-                    else:
-                        st.session_state.revisao_i = nxt
-                    persistir_tudo()
-                    st.rerun()
-            with col2:
-                if st.button("🔁 Reiniciar revisão", use_container_width=True):
-                    resetar_revisao()
-                    st.rerun()
+        mostrar_resultado(q, st.session_state.revisao_resposta)
+        # Remover da lista após acertar? A função registrar_resposta já remove se acertou.
+        # Se errou, permanece.
+        if st.button("🔄 Avançar", use_container_width=True):
+            # Atualiza a lista (pode ter mudado após registrar)
+            if i_rev < len(st.session_state.revisao_lista):
+                st.session_state.revisao_i = i_rev
+            st.session_state.revisao_respondido = False
+            st.session_state.revisao_resposta = None
+            st.rerun()
 
 # =======================================================
 # MODO 3 — Simulado (personalizado)
@@ -1261,7 +1259,7 @@ elif modo == "Histórico de Provas":
                     st.write(f"- {modulo}: {dados['acertos']}/{dados['total']} ({pct:.1f}%)")
 
 # =======================================================
-# MODO 6 — Questões Destacadas (com resposta interativa)
+# MODO 6 — Questões Destacadas (com navegação livre)
 # =======================================================
 elif modo == "Questões Destacadas":
     st.subheader("⭐ Revisão de Questões Destacadas")
@@ -1300,10 +1298,24 @@ elif modo == "Questões Destacadas":
                 st.rerun()
         st.stop()
     
-    q = st.session_state.destacada_lista[i]
+    # Navegação livre
+    col_prev, col_pos, col_info = st.columns([1, 1, 2])
+    with col_prev:
+        if st.button("◀ Anterior", disabled=(i == 0), use_container_width=True):
+            st.session_state.destacada_i -= 1
+            st.session_state.destacada_respondido = False
+            st.session_state.destacada_resposta = None
+            st.rerun()
+    with col_pos:
+        if st.button("Próxima ▶", disabled=(i >= total - 1), use_container_width=True):
+            st.session_state.destacada_i += 1
+            st.session_state.destacada_respondido = False
+            st.session_state.destacada_resposta = None
+            st.rerun()
+    with col_info:
+        st.caption(f"Questão {i + 1} de {total}")
     
-    # Progresso
-    st.progress((i + 1) / total, text=f"Questão {i+1} de {total}")
+    q = st.session_state.destacada_lista[i]
     
     st.divider()
     card_questao(q, mostrar_objetivo=True, mostrar_destaque=True)
@@ -1330,41 +1342,81 @@ elif modo == "Questões Destacadas":
             else:
                 st.session_state.destacada_resposta = selected
                 st.session_state.destacada_respondido = True
-                # Registrar resposta (apenas para estatística, não entra nos erros)
-                # Opcional: podemos chamar registrar_resposta com origem="destacada"
-                # Para não poluir o histórico, podemos apenas mostrar o resultado
                 st.rerun()
     else:
-        # Mostrar resultado
-        correto = (st.session_state.destacada_resposta == q["correta"])
-        if correto:
-            st.success("✅ Correto!")
-        else:
-            st.error(f"❌ Errado — correta: **{q['correta']}**) {q['opcoes'][q['correta']]}")
-        with st.expander("Ver explicação", expanded=True):
-            st.write(q.get("explicacao", "Sem explicação disponível."))
+        mostrar_resultado(q, st.session_state.destacada_resposta)
+        if st.button("⭐ Remover destaque", use_container_width=True):
+            toggle_destaque(q['id'])
+            # Remover da lista atual
+            st.session_state.destacada_lista = [item for item in st.session_state.destacada_lista if item['id'] != q['id']]
+            if st.session_state.destacada_i >= len(st.session_state.destacada_lista):
+                st.session_state.destacada_i = max(0, len(st.session_state.destacada_lista) - 1)
+            st.session_state.destacada_respondido = False
+            st.session_state.destacada_resposta = None
+            st.rerun()
+
+# =======================================================
+# MODO 7 — Buscar Questão
+# =======================================================
+elif modo == "Buscar Questão":
+    st.subheader("🔍 Buscar Questão por Código")
+    
+    codigo_busca = st.text_input("Digite o código da questão (ex: FK2979):", value=st.session_state.busca_codigo)
+    
+    if codigo_busca != st.session_state.busca_codigo:
+        st.session_state.busca_codigo = codigo_busca
+        st.session_state.busca_questao = None
+        st.session_state.busca_respondido = False
+        st.session_state.busca_resposta = None
+    
+    if st.button("🔎 Buscar", use_container_width=True) and codigo_busca:
+        # Busca ignorando a versão (remove " | V. X" e faz case-insensitive)
+        codigo_limpo = codigo_busca.strip().upper()
+        # Remove sufixos como " | V. 6" ou " V. 6"
+        import re
+        codigo_sem_versao = re.sub(r'\s*[|]?\s*V\.\s*\d+$', '', codigo_limpo)
         
-        col1, col2 = st.columns(2)
-        with col1:
-            if st.button("➡️ Próxima", use_container_width=True):
-                st.session_state.destacada_i += 1
-                st.session_state.destacada_respondido = False
-                st.session_state.destacada_resposta = None
-                st.rerun()
-        with col2:
-            if st.button("⭐ Remover destaque", use_container_width=True):
-                toggle_destaque(q['id'])
-                # Remover da lista atual
-                st.session_state.destacada_lista = [item for item in st.session_state.destacada_lista if item['id'] != q['id']]
-                # Ajustar índice se necessário
-                if st.session_state.destacada_i >= len(st.session_state.destacada_lista):
-                    st.session_state.destacada_i = max(0, len(st.session_state.destacada_lista) - 1)
-                st.session_state.destacada_respondido = False
-                st.session_state.destacada_resposta = None
+        # Procura a questão
+        encontrada = None
+        for q in questoes:
+            codigo_q = re.sub(r'\s*[|]?\s*V\.\s*\d+$', '', q['codigo'].upper())
+            if codigo_q == codigo_sem_versao:
+                encontrada = q
+                break
+        
+        if encontrada:
+            st.session_state.busca_questao = encontrada
+            st.session_state.busca_respondido = False
+            st.session_state.busca_resposta = None
+        else:
+            st.error(f"Questão com código '{codigo_busca}' não encontrada.")
+            st.session_state.busca_questao = None
+    
+    if st.session_state.busca_questao:
+        q = st.session_state.busca_questao
+        st.divider()
+        card_questao(q, mostrar_objetivo=True, mostrar_destaque=True)
+        
+        resposta = render_alternativas_com_descarte(q, f"busca_{q['id']}")
+        
+        if not st.session_state.busca_respondido:
+            if st.button("✅ Responder", use_container_width=True):
+                if resposta is None:
+                    st.warning("Selecione uma alternativa antes de responder.")
+                else:
+                    st.session_state.busca_resposta = resposta
+                    st.session_state.busca_respondido = True
+                    registrar_resposta(q, resposta, "treino")  # registra como treino
+                    persistir_tudo()
+                    st.rerun()
+        else:
+            mostrar_resultado(q, st.session_state.busca_resposta)
+            if st.button("🔄 Nova busca", use_container_width=True):
+                resetar_busca()
                 st.rerun()
 
 # =======================================================
-# MODO 7 — Dashboard
+# MODO 8 — Dashboard
 # =======================================================
 elif modo == "Dashboard":
     st.subheader("Dashboard de desempenho")
