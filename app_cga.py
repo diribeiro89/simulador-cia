@@ -13,7 +13,56 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-# Captura parâmetro da URL para navegação no mapa
+# -------------------------------------------------------
+# CSS customizado para o mapa de questões
+# -------------------------------------------------------
+st.markdown("""
+<style>
+    /* Container do mapa */
+    .map-item {
+        display: inline-block;
+        width: 100%;
+        margin: 2px 0;
+    }
+    .map-item button {
+        min-width: 36px;
+        min-height: 36px;
+        padding: 4px 0;
+        border-radius: 8px;
+        font-weight: bold;
+        font-size: 14px;
+        border: 2px solid transparent;
+        transition: all 0.2s;
+        color: white !important;
+        background-color: #b33a3a !important;
+        border-color: #8a2a2a !important;
+        width: 100%;
+        text-align: center;
+    }
+    .map-item button:hover {
+        transform: scale(1.1);
+        opacity: 0.9;
+    }
+    /* Respondida - verde */
+    .map-item.map-respondida button {
+        background-color: #2a7a2a !important;
+        border-color: #1a5a1a !important;
+    }
+    /* Pendente - vermelho */
+    .map-item.map-pendente button {
+        background-color: #b33a3a !important;
+        border-color: #8a2a2a !important;
+    }
+    /* Questão atual - borda dourada e sombra */
+    .map-item.map-atual button {
+        border-color: #ffd700 !important;
+        box-shadow: 0 0 14px #ffd700 !important;
+        transform: scale(1.05);
+    }
+</style>
+""", unsafe_allow_html=True)
+
+# Captura parâmetro da URL para navegação no mapa (caso use)
 if "prova_go" in st.query_params:
     try:
         idx = int(st.query_params["prova_go"][0])
@@ -968,7 +1017,7 @@ elif modo == "Prova":
                 text=f"Questão {i + 1} de {len(prov)} | {respondidas_n} respondidas",
             )
 
-        # --- MAPA DE QUESTÕES (COM LEGENDA E CORES) ---
+        # --- MAPA DE QUESTÕES (com st.button e CSS) ---
         with st.expander("🗺️ Mapa de Questões", expanded=False):
             st.markdown("""
             **Legenda:**  
@@ -986,44 +1035,21 @@ elif modo == "Prova":
             
             for grupo, lista in grupos.items():
                 st.markdown(f"**{grupo}**")
-                # Criar linhas com até 10 números por linha
                 for j in range(0, len(lista), 10):
                     cols = st.columns(min(10, len(lista) - j))
                     for k in range(len(cols)):
                         idx, q_item = lista[j + k]
                         is_respondida = q_item['id'] in st.session_state.prova_respostas
                         is_atual = (idx == i)
-                        # Definir cores
-                        if is_respondida:
-                            bg_color = "#2a7a2a"
-                            border_color = "#1a5a1a"
-                        else:
-                            bg_color = "#b33a3a"
-                            border_color = "#8a2a2a"
-                        # Se for a atual, borda dourada e sombra
-                        border_style = f"border: 3px solid #ffd700; box-shadow: 0 0 12px #ffd700;" if is_atual else f"border: 2px solid {border_color};"
-                        link = f'?prova_go={idx}'
+                        classe = "map-respondida" if is_respondida else "map-pendente"
+                        if is_atual:
+                            classe += " map-atual"
                         with cols[k]:
-                            st.markdown(f'''
-                                <a href="{link}" style="
-                                    display: inline-block;
-                                    width: 100%;
-                                    min-width: 36px;
-                                    padding: 4px 0;
-                                    background-color: {bg_color};
-                                    color: white;
-                                    text-decoration: none;
-                                    border-radius: 8px;
-                                    font-weight: bold;
-                                    font-size: 14px;
-                                    text-align: center;
-                                    {border_style}
-                                    transition: all 0.2s;
-                                " onmouseover="this.style.transform='scale(1.1)';" onmouseout="this.style.transform='scale(1)'";>
-                                    {idx + 1}
-                                </a>
-                            ''', unsafe_allow_html=True)
-                    # Adicionar divisor entre linhas (opcional)
+                            st.markdown(f'<div class="map-item {classe}">', unsafe_allow_html=True)
+                            if st.button(str(idx + 1), key=f"map_{idx}", use_container_width=True):
+                                st.session_state.prova_i = idx
+                                st.rerun()
+                            st.markdown('</div>', unsafe_allow_html=True)
                     if j + 10 < len(lista):
                         st.divider()
 
