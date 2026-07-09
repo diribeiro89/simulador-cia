@@ -969,35 +969,11 @@ elif modo == "Prova":
         grupo_por_questao = st.session_state.prova_grupo_por_questao
 
         if not st.session_state.prova_registrado:
-    for q_item in prov:
-        registrar_resposta(q_item, respostas.get(q_item["id"]), "prova")
-    st.session_state.prova_registrado = True
-    persistir_tudo()
-    
-    # --- SALVAR PROVA NO HISTÓRICO ---
-    # Calcula duração
-    duracao = int(time.time() - st.session_state.inicio_prova)
-    # Prepara dados
-    respostas_prova = []
-    for q_item in prov:
-        respostas_prova.append({
-            'questao_id': q_item['id'],
-            'tema': q_item.get('tema', ''),
-            'codigo': q_item['codigo'],
-            'modulo': grupo_por_questao.get(q_item['id'], 'Outros'),
-            'resposta': respostas.get(q_item['id']),
-            'correta': q_item['correta']
-        })
-    prova_data = {
-        'data': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        'duracao_segundos': duracao,
-        'total_questoes': len(prov),
-        'total_acertos': sum(1 for q in prov if respostas.get(q['id']) == q['correta'])
-    }
-    db.salvar_prova(prova_data, respostas_prova)
-    # -------------------------------------
-        
-        
+            for q_item in prov:
+                registrar_resposta(q_item, respostas.get(q_item["id"]), "prova")
+            st.session_state.prova_registrado = True
+            persistir_tudo()
+
         acertos_prov = sum(
             1 for q_item in prov
             if respostas.get(q_item["id"]) == q_item["correta"]
@@ -1114,52 +1090,7 @@ elif modo == "Prova":
             st.rerun()
 
 # =======================================================
-# MODO 5 — Histórico de Provas
-# =======================================================
-elif modo == "Histórico de Provas":
-    st.subheader("📚 Histórico de Provas Realizadas")
-    
-    provas = db.carregar_provas()
-    if not provas:
-        st.info("Nenhuma prova realizada ainda. Complete uma prova para ver o histórico.")
-        st.stop()
-    
-    for prova in provas:
-        data_str = datetime.strptime(prova['data'], "%Y-%m-%d %H:%M:%S").strftime("%d/%m/%Y %H:%M")
-        duracao = prova['duracao_segundos']
-        minutos = duracao // 60
-        segundos = duracao % 60
-        with st.expander(f"📅 {data_str}  |  {prova['total_acertos']}/{prova['total_questoes']} acertos  |  ⏱️ {minutos}m {segundos}s"):
-            # Carrega respostas
-            respostas = db.carregar_respostas_prova(prova['id'])
-            if not respostas:
-                st.warning("Detalhes não disponíveis.")
-            else:
-                # Exibe correção estilo a prova finalizada
-                st.markdown("**Correção detalhada:**")
-                for resp in respostas:
-                    correto = (resp['resposta'] == resp['correta'])
-                    num = resp['questao_id']
-                    if correto:
-                        st.success(f"✅ Q{num} — {resp['codigo']} ({resp['modulo']}): correto ({resp['resposta']})")
-                    else:
-                        st.error(f"❌ Q{num} — {resp['codigo']} ({resp['modulo']}): marcou **{resp['resposta']}** | correta: **{resp['correta']}**")
-                # Mostra estatísticas por módulo
-                st.markdown("**Desempenho por módulo:**")
-                modulos = {}
-                for resp in respostas:
-                    modulo = resp['modulo']
-                    if modulo not in modulos:
-                        modulos[modulo] = {'total': 0, 'acertos': 0}
-                    modulos[modulo]['total'] += 1
-                    if resp['resposta'] == resp['correta']:
-                        modulos[modulo]['acertos'] += 1
-                for modulo, dados in modulos.items():
-                    pct = dados['acertos'] / dados['total'] * 100 if dados['total'] else 0
-                    st.write(f"- {modulo}: {dados['acertos']}/{dados['total']} ({pct:.1f}%)")
-
-# =======================================================
-# MODO 6 — Dashboard
+# MODO 5 — Dashboard
 # =======================================================
 elif modo == "Dashboard":
     st.subheader("Dashboard de desempenho")
