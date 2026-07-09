@@ -13,17 +13,6 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-# Captura parâmetro da URL para navegação no mapa
-if "prova_go" in st.query_params:
-    try:
-        idx = int(st.query_params["prova_go"][0])
-        if "prova_questoes" in st.session_state and 0 <= idx < len(st.session_state.prova_questoes):
-            st.session_state.prova_i = idx
-        st.query_params.clear()
-        st.rerun()
-    except:
-        pass
-
 ARQUIVO_QUESTOES = "questoes_cga_todos_temas.json"
 
 # -------------------------------------------------------
@@ -163,12 +152,8 @@ def inicializar_estado():
         "inicio_prova": None,
         "prova_duracao_min": TEMPO_PROVA_MIN,
         "prova_tempo_restante": None,
-        "destacadas": db.carregar_destacadas(),
+        "destacadas": db.carregar_destacadas(),  # carrega do banco
         "confirmar_zerar": False,
-        "destacada_lista": [],
-        "destacada_i": 0,
-        "destacada_respondido": False,
-        "destacada_resposta": None,
     }
     for k, v in defaults.items():
         if k not in st.session_state:
@@ -180,6 +165,7 @@ def inicializar_estado():
     st.session_state.erros = db.load_erros(questoes)
     st.session_state.leitner = db.load_leitner()
     st.session_state.alternativas_descartadas = db.load_descartes()
+    # recarregar destacadas para garantir
     st.session_state.destacadas = db.carregar_destacadas()
     if st.session_state.questao_atual:
         ids_questoes = {q["id"] for q in questoes}
@@ -228,12 +214,6 @@ def resetar_prova():
     st.session_state.confirmar_finalizar = False
     persistir_tudo()
 
-def resetar_destacada():
-    st.session_state.destacada_lista = []
-    st.session_state.destacada_i = 0
-    st.session_state.destacada_respondido = False
-    st.session_state.destacada_resposta = None
-
 # -------------------------------------------------------
 # Leitner
 # -------------------------------------------------------
@@ -262,7 +242,7 @@ def obter_questoes_para_revisar():
     return [mapa[id] for id in ids_revisar if id in mapa]
 
 # -------------------------------------------------------
-# Descartar alternativas
+# Descartar alternativas (COM DESTAQUE VISUAL)
 # -------------------------------------------------------
 def toggle_descarte(q_id, letra):
     if q_id not in st.session_state.alternativas_descartadas:
@@ -324,7 +304,7 @@ def render_alternativas_com_descarte(q, key_prefix):
     return st.session_state[resposta_key]
 
 # -------------------------------------------------------
-# Destaques
+# Destaques (salvar no banco)
 # -------------------------------------------------------
 def toggle_destaque(q_id):
     if q_id in st.session_state.destacadas:
@@ -335,7 +315,7 @@ def toggle_destaque(q_id):
         db.adicionar_destacada(q_id)
 
 # -------------------------------------------------------
-# UI Helpers
+# UI Helpers (card da questão com botão de destaque)
 # -------------------------------------------------------
 def card_questao(q, mostrar_objetivo=True, mostrar_destaque=False):
     num = q.get("numero_original", q["id"])
@@ -355,31 +335,9 @@ def card_questao(q, mostrar_objetivo=True, mostrar_destaque=False):
             st.write(q["objetivo"])
     st.markdown(q["pergunta"])
 
-def mostrar_resultado(q, resposta):
-    if resposta == q["correta"]:
-        st.success("✅ Correto!")
-    else:
-        st.error(
-            f"❌ Errado — correta: **{q['correta']}**) "
-            f"{q['opcoes'][q['correta']]}"
-        )
-    with st.expander("Ver explicação", expanded=True):
-        st.write(q.get("explicacao", "Sem explicação disponível."))
-
-def estatisticas():
-    total = len(st.session_state.historico)
-    acertos_n = sum(1 for h in st.session_state.historico if h["acertou"])
-    erros_n = total - acertos_n
-    taxa = (acertos_n / total * 100) if total else 0.0
-    return total, acertos_n, erros_n, taxa
-
-LABEL_ORIGEM = {
-    "treino": "Treino livre",
-    "revisao_erros": "Revisão de erros",
-    "simulado": "Simulado",
-    "prova": "Prova ANBIMA",
-}
-
+# -------------------------------------------------------
+# Helpers de questão
+# -------------------------------------------------------
 def escolher_questao(lista=None):
     base = lista if lista else questoes
     return random.choice(base) if base else None
@@ -428,8 +386,33 @@ def filtrar_base(tema="Todos", objetivo="Todos"):
         base = [q for q in base if q.get("objetivo") == objetivo]
     return base
 
+def mostrar_resultado(q, resposta):
+    if resposta == q["correta"]:
+        st.success("✅ Correto!")
+    else:
+        st.error(
+            f"❌ Errado — correta: **{q['correta']}**) "
+            f"{q['opcoes'][q['correta']]}"
+        )
+    with st.expander("Ver explicação", expanded=True):
+        st.write(q.get("explicacao", "Sem explicação disponível."))
+
+def estatisticas():
+    total = len(st.session_state.historico)
+    acertos_n = sum(1 for h in st.session_state.historico if h["acertou"])
+    erros_n = total - acertos_n
+    taxa = (acertos_n / total * 100) if total else 0.0
+    return total, acertos_n, erros_n, taxa
+
+LABEL_ORIGEM = {
+    "treino": "Treino livre",
+    "revisao_erros": "Revisão de erros",
+    "simulado": "Simulado",
+    "prova": "Prova ANBIMA",
+}
+
 # -------------------------------------------------------
-# Sidebar
+# Sidebar (com confirmação de senha)
 # -------------------------------------------------------
 st.sidebar.title("📚 Simulador CGA")
 
@@ -442,8 +425,6 @@ modo = st.sidebar.radio(
 
 if modo != st.session_state.modo:
     st.session_state.modo = modo
-    if modo != "Questões Destacadas":
-        resetar_destacada()
     resetar_treino()
     persistir_tudo()
     st.rerun()
@@ -476,7 +457,6 @@ if st.session_state.confirmar_zerar:
                     resetar_revisao()
                     resetar_simulado()
                     resetar_prova()
-                    resetar_destacada()
                     db.save_historico([])
                     db.save_estado(st.session_state)
                     db.limpar_provas()
@@ -876,7 +856,7 @@ elif modo == "Simulado":
             st.rerun()
 
 # =======================================================
-# MODO 4 — Prova ANBIMA (com mapa de questões via HTML inline)
+# MODO 4 — Prova ANBIMA (com mapa de questões)
 # =======================================================
 elif modo == "Prova":
     st.subheader("📝 Prova ANBIMA CGA")
@@ -968,31 +948,50 @@ elif modo == "Prova":
                 text=f"Questão {i + 1} de {len(prov)} | {respondidas_n} respondidas",
             )
 
-        # --- MAPA DE QUESTÕES (HTML inline sem quebras) ---
+        # --- MAPA DE QUESTÕES ---
         with st.expander("🗺️ Mapa de Questões", expanded=False):
-            st.markdown("**Legenda:** 🟢 Respondida | 🔴 Pendente | ⭐ Questão atual", unsafe_allow_html=True)
-            
+            # Agrupa por módulo
             grupos = {}
             for idx, q_item in enumerate(prov):
                 grupo = st.session_state.prova_grupo_por_questao.get(q_item['id'], 'Outros')
                 if grupo not in grupos:
                     grupos[grupo] = []
                 grupos[grupo].append((idx, q_item))
-            
             for grupo, lista in grupos.items():
                 st.markdown(f"**{grupo}**")
-                # Construir HTML para uma linha de até 10 números
-                html_linha = '<div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px;">'
-                for idx, q_item in lista:
-                    is_respondida = q_item['id'] in st.session_state.prova_respostas
-                    is_atual = (idx == i)
-                    bg = "#2a7a2a" if is_respondida else "#b33a3a"
-                    border = "3px solid #ffd700; box-shadow: 0 0 12px #ffd700;" if is_atual else "2px solid #8a2a2a;"
-                    # Link com estilo inline (sem quebras)
-                    link = f'?prova_go={idx}'
-                    html_linha += f'<a href="{link}" style="display:inline-block;min-width:36px;padding:4px 0;background-color:{bg};color:white;text-decoration:none;border-radius:8px;font-weight:bold;font-size:14px;text-align:center;border:{border}transition:all 0.2s;" onmouseover="this.style.transform=\'scale(1.05)\';" onmouseout="this.style.transform=\'scale(1)\';">{idx+1}</a>'
-                html_linha += '</div>'
-                st.markdown(html_linha, unsafe_allow_html=True)
+                # Exibe em linhas de até 10 números
+                for j in range(0, len(lista), 10):
+                    cols = st.columns(10)
+                    for k in range(10):
+                        if j + k < len(lista):
+                            idx, q_item = lista[j + k]
+                            is_respondida = q_item['id'] in st.session_state.prova_respostas
+                            is_atual = (idx == i)
+                            label = str(idx + 1)
+                            # Define a cor
+                            if is_respondida:
+                                color = "green"
+                            else:
+                                color = "red"
+                            # Estilo do botão
+                            btn_style = f"background-color: {color}; color: white;" if is_respondida else f"background-color: #ffcccc; color: black;"
+                            if is_atual:
+                                btn_style += " border: 3px solid yellow;"
+                            cols[k].markdown(
+                                f"""
+                                <button style="{btn_style} padding: 5px 10px; border-radius: 5px; border: none; cursor: pointer;" 
+                                        onclick="window.location.href='?prova_go={idx}'">
+                                    {label}
+                                </button>
+                                """,
+                                unsafe_allow_html=True
+                            )
+                            # Usar st.button com key única
+                            # Não podemos usar onclick diretamente, vamos usar st.button
+                            if cols[k].button(label, key=f"map_{idx}_{j+k}"):
+                                st.session_state.prova_i = idx
+                                st.rerun()
+                st.divider()
 
         st.divider()
         card_questao(q, mostrar_objetivo=False, mostrar_destaque=True)
@@ -1248,90 +1247,41 @@ elif modo == "Histórico de Provas":
                     st.write(f"- {modulo}: {dados['acertos']}/{dados['total']} ({pct:.1f}%)")
 
 # =======================================================
-# MODO 6 — Questões Destacadas (com revisão interativa)
+# MODO 6 — Questões Destacadas
 # =======================================================
 elif modo == "Questões Destacadas":
-    st.subheader("⭐ Revisão de Questões Destacadas")
+    st.subheader("⭐ Questões Destacadas")
     
     if not st.session_state.destacadas:
         st.info("Nenhuma questão destacada. Marque questões com o botão ⭐ durante os estudos.")
         st.stop()
     
-    if not st.session_state.destacada_lista:
-        mapa = {q['id']: q for q in questoes}
-        questions = [mapa[qid] for qid in st.session_state.destacadas if qid in mapa]
-        if not questions:
-            st.info("As questões destacadas não foram encontradas no banco.")
-            st.stop()
-        st.session_state.destacada_lista = questions
-        random.shuffle(st.session_state.destacada_lista)
-        st.session_state.destacada_i = 0
-        st.session_state.destacada_respondido = False
-        st.session_state.destacada_resposta = None
+    # Lista de questões destacadas (ordem aleatória ou por data)
+    ids_destacadas = list(st.session_state.destacadas)
+    # Carregar as questões completas
+    mapa = {q['id']: q for q in questoes}
+    questions = [mapa[qid] for qid in ids_destacadas if qid in mapa]
     
-    total = len(st.session_state.destacada_lista)
-    i = st.session_state.destacada_i
-    
-    if i >= total:
-        st.success("🎉 Você revisou todas as questões destacadas!")
-        col1, col2 = st.columns(2)
-        with col1:
-            if st.button("🔄 Recomeçar", use_container_width=True):
-                resetar_destacada()
-                st.rerun()
-        with col2:
-            if st.button("🗑️ Limpar lista", use_container_width=True):
-                st.session_state.destacada_lista = []
-                st.session_state.destacada_i = 0
-                st.rerun()
+    if not questions:
+        st.info("As questões destacadas não foram encontradas no banco.")
         st.stop()
     
-    q = st.session_state.destacada_lista[i]
+    # Opção de revisão aleatória
+    if st.button("🔀 Embaralhar", use_container_width=True):
+        random.shuffle(questions)
+        st.rerun()
     
-    st.progress((i + 1) / total, text=f"Questão {i+1} de {total}")
-    
-    st.divider()
-    card_questao(q, mostrar_objetivo=True, mostrar_destaque=True)
-    
-    resposta_key = f"destacada_{q['id']}"
-    if resposta_key not in st.session_state:
-        st.session_state[resposta_key] = None
-    
-    opcoes = list(q['opcoes'].keys())
-    selected = st.radio(
-        "Escolha uma alternativa:",
-        opcoes,
-        format_func=lambda x: f"{x}) {q['opcoes'][x]}",
-        key=f"radio_dest_{q['id']}_{i}",
-        index=None
-    )
-    st.session_state[resposta_key] = selected
-    
-    if not st.session_state.destacada_respondido:
-        if st.button("✅ Responder", use_container_width=True):
-            if selected is None:
-                st.warning("Selecione uma alternativa.")
-            else:
-                st.session_state.destacada_resposta = selected
-                st.session_state.destacada_respondido = True
-                st.rerun()
-    else:
-        mostrar_resultado(q, st.session_state.destacada_resposta)
-        col1, col2 = st.columns(2)
-        with col1:
-            if st.button("➡️ Próxima", use_container_width=True):
-                st.session_state.destacada_i += 1
-                st.session_state.destacada_respondido = False
-                st.session_state.destacada_resposta = None
-                st.rerun()
-        with col2:
-            if st.button("⭐ Remover destaque", use_container_width=True):
+    # Mostrar cada questão com suas alternativas e opção de remover destaque
+    for idx, q in enumerate(questions):
+        with st.expander(f"Q{idx+1} — {q['codigo']} | {q.get('tema', '')}"):
+            card_questao(q, mostrar_objetivo=True, mostrar_destaque=False)
+            # Exibe as alternativas sem interação (apenas leitura)
+            st.markdown("**Alternativas:**")
+            for letra, texto in q['opcoes'].items():
+                st.write(f"{letra}) {texto}")
+            # Botão para remover destaque
+            if st.button("⭐ Remover destaque", key=f"remover_dest_{q['id']}"):
                 toggle_destaque(q['id'])
-                st.session_state.destacada_lista = [item for item in st.session_state.destacada_lista if item['id'] != q['id']]
-                if st.session_state.destacada_i >= len(st.session_state.destacada_lista):
-                    st.session_state.destacada_i = max(0, len(st.session_state.destacada_lista) - 1)
-                st.session_state.destacada_respondido = False
-                st.session_state.destacada_resposta = None
                 st.rerun()
 
 # =======================================================
