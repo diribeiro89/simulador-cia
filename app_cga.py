@@ -962,40 +962,40 @@ elif modo == "Prova":
                 f"Você ainda tem **{nao_resp_n}** questão(ões) sem resposta. "
                 "Confirme para encerrar ou navegue para respondê-las."
             )
-
-    if st.session_state.prova_finalizado:
-        prov = st.session_state.prova_questoes
-        respostas = st.session_state.prova_respostas
-        grupo_por_questao = st.session_state.prova_grupo_por_questao
-
-        if not st.session_state.prova_registrado:
-    for q_item in prov:
-        registrar_resposta(q_item, respostas.get(q_item["id"]), "prova")
-    st.session_state.prova_registrado = True
-    persistir_tudo()
     
-    # --- SALVAR PROVA NO HISTÓRICO ---
-    # Calcula duração
-    duracao = int(time.time() - st.session_state.inicio_prova)
-    # Prepara dados
-    respostas_prova = []
-    for q_item in prov:
-        respostas_prova.append({
-            'questao_id': q_item['id'],
-            'tema': q_item.get('tema', ''),
-            'codigo': q_item['codigo'],
-            'modulo': grupo_por_questao.get(q_item['id'], 'Outros'),
-            'resposta': respostas.get(q_item['id']),
-            'correta': q_item['correta']
-        })
-    prova_data = {
-        'data': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        'duracao_segundos': duracao,
-        'total_questoes': len(prov),
-        'total_acertos': sum(1 for q in prov if respostas.get(q['id']) == q['correta'])
-    }
-    db.salvar_prova(prova_data, respostas_prova)
-    # -------------------------------------
+    if st.session_state.prova_finalizado:
+    prov = st.session_state.prova_questoes
+    respostas = st.session_state.prova_respostas
+    grupo_por_questao = st.session_state.prova_grupo_por_questao
+
+    if not st.session_state.prova_registrado:
+        for q_item in prov:
+            registrar_resposta(q_item, respostas.get(q_item["id"]), "prova")
+        st.session_state.prova_registrado = True
+        persistir_tudo()
+        
+        # --- SALVAR PROVA NO HISTÓRICO ---
+        duracao = int(time.time() - st.session_state.inicio_prova)
+        respostas_prova = []
+        for q_item in prov:
+            respostas_prova.append({
+                'questao_id': q_item['id'],
+                'tema': q_item.get('tema', ''),
+                'codigo': q_item['codigo'],
+                'modulo': grupo_por_questao.get(q_item['id'], 'Outros'),
+                'resposta': respostas.get(q_item['id']),
+                'correta': q_item['correta']
+            })
+        prova_data = {
+            'data': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            'duracao_segundos': duracao,
+            'total_questoes': len(prov),
+            'total_acertos': sum(1 for q in prov if respostas.get(q['id']) == q['correta'])
+        }
+        db.salvar_prova(prova_data, respostas_prova)
+        # -------------------------------------
+    
+        
 
         acertos_prov = sum(
             1 for q_item in prov
