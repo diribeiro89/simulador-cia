@@ -18,14 +18,12 @@ st.set_page_config(
 # -------------------------------------------------------
 st.markdown("""
 <style>
-    /* Estilo base para os botões do mapa */
-    .map-button-group {
-        display: inline-flex;
-        flex-wrap: wrap;
-        gap: 6px;
-        margin: 4px 0;
+    /* Container do mapa */
+    .map-item {
+        display: inline-block;
+        margin: 2px;
     }
-    .map-button-group .stButton button {
+    .map-item button {
         min-width: 36px;
         min-height: 36px;
         padding: 4px 8px;
@@ -34,30 +32,30 @@ st.markdown("""
         font-size: 14px;
         border: 2px solid transparent;
         transition: all 0.2s;
-        background-color: #b33a3a;
-        color: white;
-        border-color: #8a2a2a;
+        color: white !important;
+        background-color: #b33a3a !important;
+        border-color: #8a2a2a !important;
     }
-    .map-button-group .stButton button:hover {
+    .map-item button:hover {
         transform: scale(1.1);
         opacity: 0.9;
     }
     /* Respondida - verde */
-    .map-respondida .stButton button {
-        background-color: #2a7a2a;
-        border-color: #1a5a1a;
-        color: white;
+    .map-item.map-respondida button {
+        background-color: #2a7a2a !important;
+        border-color: #1a5a1a !important;
+        color: white !important;
     }
     /* Pendente - vermelho */
-    .map-pendente .stButton button {
-        background-color: #b33a3a;
-        border-color: #8a2a2a;
-        color: white;
+    .map-item.map-pendente button {
+        background-color: #b33a3a !important;
+        border-color: #8a2a2a !important;
+        color: white !important;
     }
     /* Questão atual - borda dourada e sombra */
-    .map-atual .stButton button {
+    .map-item.map-atual button {
         border-color: #ffd700 !important;
-        box-shadow: 0 0 14px #ffd700;
+        box-shadow: 0 0 14px #ffd700 !important;
         transform: scale(1.05);
     }
 </style>
@@ -1008,7 +1006,7 @@ elif modo == "Prova":
                 text=f"Questão {i + 1} de {len(prov)} | {respondidas_n} respondidas",
             )
 
-        # --- MAPA DE QUESTÕES VISUAL (CSS refinado) ---
+        # --- MAPA DE QUESTÕES VISUAL (corrigido) ---
         with st.expander("🗺️ Mapa de Questões", expanded=False):
             grupos = {}
             for idx, q_item in enumerate(prov):
@@ -1021,25 +1019,22 @@ elif modo == "Prova":
                 st.markdown(f"**{grupo}**")
                 # Exibe em grupos de até 10 números
                 for j in range(0, len(lista), 10):
-                    # Criar uma linha com colunas
                     cols = st.columns(min(10, len(lista) - j))
                     for k in range(len(cols)):
                         idx, q_item = lista[j + k]
                         is_respondida = q_item['id'] in st.session_state.prova_respostas
                         is_atual = (idx == i)
-                        # Definir classe CSS para o container do botão
+                        # Definir classe para o container
                         classe = "map-respondida" if is_respondida else "map-pendente"
                         if is_atual:
                             classe += " map-atual"
-                        # Envolver o botão em um container com a classe
                         with cols[k]:
-                            with st.container():
-                                # Usar st.markdown para adicionar a classe ao container
-                                st.markdown(f'<div class="{classe}">', unsafe_allow_html=True)
-                                if st.button(str(idx + 1), key=f"map_{idx}", use_container_width=True):
-                                    st.session_state.prova_i = idx
-                                    st.rerun()
-                                st.markdown('</div>', unsafe_allow_html=True)
+                            # Usar st.container com classe via markdown
+                            st.markdown(f'<div class="map-item {classe}">', unsafe_allow_html=True)
+                            if st.button(str(idx + 1), key=f"map_{idx}", use_container_width=True):
+                                st.session_state.prova_i = idx
+                                st.rerun()
+                            st.markdown('</div>', unsafe_allow_html=True)
                     st.divider()
 
         st.divider()
