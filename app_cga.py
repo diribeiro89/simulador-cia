@@ -272,7 +272,6 @@ def render_alternativas_com_descarte(q, key_prefix):
                 st.markdown(f"~~{label}~~")
             else:
                 if is_selecionada:
-                    # Estilo de destaque (verde escuro com texto verde claro)
                     st.markdown(f"""
                         <div style="
                             background-color: #0d3b0d; 
@@ -298,7 +297,6 @@ def render_alternativas_com_descarte(q, key_prefix):
                     st.session_state[resposta_key] = None
                 st.rerun()
     
-    # Mensagem removida
     return st.session_state[resposta_key]
 
 # -------------------------------------------------------
@@ -425,6 +423,7 @@ if st.sidebar.button("🗑️ Zerar histórico", use_container_width=True):
     resetar_prova()
     db.save_historico([])
     db.save_estado(st.session_state)
+    db.limpar_provas()  # <-- NOVO: limpa também o histórico de provas
     st.rerun()
 
 # -------------------------------------------------------
@@ -968,7 +967,6 @@ elif modo == "Prova":
             st.session_state.prova_registrado = True
             persistir_tudo()
             
-            # --- SALVAR PROVA NO HISTÓRICO ---
             duracao = int(time.time() - st.session_state.inicio_prova)
             respostas_prova = []
             for q_item in prov:
@@ -987,7 +985,6 @@ elif modo == "Prova":
                 'total_acertos': sum(1 for q in prov if respostas.get(q['id']) == q['correta'])
             }
             db.salvar_prova(prova_data, respostas_prova)
-            # -------------------------------------
 
         acertos_prov = sum(
             1 for q_item in prov
@@ -1005,9 +1002,6 @@ elif modo == "Prova":
         c3.metric("Não respondidas", nao_resp)
         st.progress(taxa_prov / 100, text=f"Aproveitamento: {taxa_prov:.1f}%")
 
-        # -------------------------------------------------------
-        # RELATÓRIO DETALHADO POR MÓDULO
-        # -------------------------------------------------------
         st.divider()
         st.markdown("### 📊 RELATÓRIO DETALHADO POR MÓDULO")
 
@@ -1105,7 +1099,7 @@ elif modo == "Prova":
             st.rerun()
 
 # =======================================================
-# MODO 5 — Histórico de Provas
+# MODO 5 — Histórico de Provas (com questão completa)
 # =======================================================
 elif modo == "Histórico de Provas":
     st.subheader("📚 Histórico de Provas Realizadas")
@@ -1114,6 +1108,8 @@ elif modo == "Histórico de Provas":
     if not provas:
         st.info("Nenhuma prova realizada ainda. Complete uma prova para ver o histórico.")
         st.stop()
+    
+    mapa_questoes = {q['id']: q for q in questoes}
     
     for prova in provas:
         data_str = datetime.strptime(prova['data'], "%Y-%m-%d %H:%M:%S").strftime("%d/%m/%Y %H:%M")
@@ -1127,12 +1123,24 @@ elif modo == "Histórico de Provas":
             else:
                 st.markdown("**Correção detalhada:**")
                 for resp in respostas:
+                    q = mapa_questoes.get(resp['questao_id'])
                     correto = (resp['resposta'] == resp['correta'])
                     num = resp['questao_id']
-                    if correto:
-                        st.success(f"✅ Q{num} — {resp['codigo']} ({resp['modulo']}): correto ({resp['resposta']})")
+                    if q:
+                        with st.expander(f"Q{num} — {resp['codigo']} ({'✅ Correto' if correto else '❌ Errado'})"):
+                            # Exibe a questão completa
+                            card_questao(q, mostrar_objetivo=False)
+                            st.markdown(f"**Sua resposta:** {resp['resposta']}")
+                            st.markdown(f"**Resposta correta:** {resp['correta']}")
+                            if not correto:
+                                st.markdown(f"**Explicação:** {q.get('explicacao', 'Sem explicação.')}")
                     else:
-                        st.error(f"❌ Q{num} — {resp['codigo']} ({resp['modulo']}): marcou **{resp['resposta']}** | correta: **{resp['correta']}**")
+                        # Fallback: apenas a mensagem simples
+                        if correto:
+                            st.success(f"✅ Q{num} — {resp['codigo']}: correto ({resp['resposta']})")
+                        else:
+                            st.error(f"❌ Q{num} — {resp['codigo']}: marcou **{resp['resposta']}** | correta: **{resp['correta']}**")
+                # Desempenho por módulo
                 st.markdown("**Desempenho por módulo:**")
                 modulos = {}
                 for resp in respostas:
