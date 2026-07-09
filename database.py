@@ -134,6 +134,51 @@ def load_historico() -> List[Dict[str, Any]]:
         })
     return historico
 
+# ===================== DESTACADAS =====================
+def adicionar_destacada(questao_id):
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS destacadas (
+            questao_id INTEGER PRIMARY KEY,
+            data_destaque TEXT
+        )
+    ''')
+    c.execute('''
+        REPLACE INTO destacadas (questao_id, data_destaque)
+        VALUES (?, ?)
+    ''', (questao_id, datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+    conn.commit()
+    conn.close()
+
+def remover_destacada(questao_id):
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("DELETE FROM destacadas WHERE questao_id = ?", (questao_id,))
+    conn.commit()
+    conn.close()
+
+def carregar_destacadas():
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS destacadas (
+            questao_id INTEGER PRIMARY KEY,
+            data_destaque TEXT
+        )
+    ''')
+    c.execute("SELECT questao_id FROM destacadas")
+    rows = c.fetchall()
+    conn.close()
+    return {row[0] for row in rows}
+
+def limpar_destacadas():
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("DELETE FROM destacadas")
+    conn.commit()
+    conn.close()
+
 # -------------------------------------------------------
 # Estado geral
 # -------------------------------------------------------
