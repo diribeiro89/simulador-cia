@@ -13,9 +13,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-# -------------------------------------------------------
 # Captura parâmetro da URL para navegação no mapa
-# -------------------------------------------------------
 if "prova_go" in st.query_params:
     try:
         idx = int(st.query_params["prova_go"][0])
@@ -878,7 +876,7 @@ elif modo == "Simulado":
             st.rerun()
 
 # =======================================================
-# MODO 4 — Prova ANBIMA (com mapa de questões usando links HTML)
+# MODO 4 — Prova ANBIMA (com mapa de questões)
 # =======================================================
 elif modo == "Prova":
     st.subheader("📝 Prova ANBIMA CGA")
@@ -970,8 +968,15 @@ elif modo == "Prova":
                 text=f"Questão {i + 1} de {len(prov)} | {respondidas_n} respondidas",
             )
 
-        # --- MAPA DE QUESTÕES (com links HTML) ---
+        # --- MAPA DE QUESTÕES (COM LEGENDA E CORES) ---
         with st.expander("🗺️ Mapa de Questões", expanded=False):
+            st.markdown("""
+            **Legenda:**  
+            🟢 <span style="color:#2a7a2a;">Respondida</span> &nbsp;&nbsp;|&nbsp;&nbsp; 
+            🔴 <span style="color:#b33a3a;">Pendente</span> &nbsp;&nbsp;|&nbsp;&nbsp; 
+            ⭐ <span style="color:#ffd700;">Questão atual</span>
+            """, unsafe_allow_html=True)
+            
             grupos = {}
             for idx, q_item in enumerate(prov):
                 grupo = st.session_state.prova_grupo_por_questao.get(q_item['id'], 'Outros')
@@ -981,43 +986,46 @@ elif modo == "Prova":
             
             for grupo, lista in grupos.items():
                 st.markdown(f"**{grupo}**")
-                # Criar uma linha com os números usando HTML
-                html_linha = '<div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px;">'
-                for idx, q_item in lista:
-                    is_respondida = q_item['id'] in st.session_state.prova_respostas
-                    is_atual = (idx == i)
-                    # Definir cores
-                    if is_respondida:
-                        bg_color = "#2a7a2a"
-                        border_color = "#1a5a1a"
-                    else:
-                        bg_color = "#b33a3a"
-                        border_color = "#8a2a2a"
-                    # Se for a atual, borda dourada e sombra
-                    border_style = f"border: 3px solid #ffd700; box-shadow: 0 0 12px #ffd700;" if is_atual else f"border: 2px solid {border_color};"
-                    # Link para recarregar com parâmetro
-                    link = f'?prova_go={idx}'
-                    # Botão estilizado como link
-                    html_linha += f'''
-                        <a href="{link}" style="
-                            display: inline-block;
-                            min-width: 36px;
-                            padding: 4px 8px;
-                            background-color: {bg_color};
-                            color: white;
-                            text-decoration: none;
-                            border-radius: 8px;
-                            font-weight: bold;
-                            font-size: 14px;
-                            text-align: center;
-                            {border_style}
-                            transition: all 0.2s;
-                        " onmouseover="this.style.transform='scale(1.1)';" onmouseout="this.style.transform='scale(1)'";>
-                            {idx + 1}
-                        </a>
-                    '''
-                html_linha += '</div>'
-                st.markdown(html_linha, unsafe_allow_html=True)
+                # Criar linhas com até 10 números por linha
+                for j in range(0, len(lista), 10):
+                    cols = st.columns(min(10, len(lista) - j))
+                    for k in range(len(cols)):
+                        idx, q_item = lista[j + k]
+                        is_respondida = q_item['id'] in st.session_state.prova_respostas
+                        is_atual = (idx == i)
+                        # Definir cores
+                        if is_respondida:
+                            bg_color = "#2a7a2a"
+                            border_color = "#1a5a1a"
+                        else:
+                            bg_color = "#b33a3a"
+                            border_color = "#8a2a2a"
+                        # Se for a atual, borda dourada e sombra
+                        border_style = f"border: 3px solid #ffd700; box-shadow: 0 0 12px #ffd700;" if is_atual else f"border: 2px solid {border_color};"
+                        link = f'?prova_go={idx}'
+                        with cols[k]:
+                            st.markdown(f'''
+                                <a href="{link}" style="
+                                    display: inline-block;
+                                    width: 100%;
+                                    min-width: 36px;
+                                    padding: 4px 0;
+                                    background-color: {bg_color};
+                                    color: white;
+                                    text-decoration: none;
+                                    border-radius: 8px;
+                                    font-weight: bold;
+                                    font-size: 14px;
+                                    text-align: center;
+                                    {border_style}
+                                    transition: all 0.2s;
+                                " onmouseover="this.style.transform='scale(1.1)';" onmouseout="this.style.transform='scale(1)'";>
+                                    {idx + 1}
+                                </a>
+                            ''', unsafe_allow_html=True)
+                    # Adicionar divisor entre linhas (opcional)
+                    if j + 10 < len(lista):
+                        st.divider()
 
         st.divider()
         card_questao(q, mostrar_objetivo=False, mostrar_destaque=True)
