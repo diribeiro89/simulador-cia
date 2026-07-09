@@ -411,20 +411,44 @@ st.sidebar.metric("Questões respondidas", total_h)
 st.sidebar.metric("Taxa de acerto", f"{taxa_h:.1f}%")
 st.sidebar.metric("Erros salvos", len(st.session_state.erros))
 
+# No sidebar, dentro de st.sidebar
 st.sidebar.divider()
 
+# Controle de confirmação
+if "confirmar_zerar" not in st.session_state:
+    st.session_state.confirmar_zerar = False
+
 if st.sidebar.button("🗑️ Zerar histórico", use_container_width=True):
-    st.session_state.historico = []
-    st.session_state.erros = []
-    st.session_state.acertos = []
-    resetar_treino()
-    resetar_revisao()
-    resetar_simulado()
-    resetar_prova()
-    db.save_historico([])
-    db.save_estado(st.session_state)
-    db.limpar_provas()  # <-- NOVO: limpa também o histórico de provas
-    st.rerun()
+    st.session_state.confirmar_zerar = True
+
+if st.session_state.confirmar_zerar:
+    with st.sidebar.expander("🔒 Confirmar exclusão"):
+        st.warning("Esta ação apagará todo o histórico, erros, acertos e provas. Digite a senha para confirmar.")
+        senha = st.text_input("Senha:", type="password", key="senha_zerar")
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("✅ Confirmar", use_container_width=True):
+                if senha == "Bela2307":
+                    # Executa a exclusão
+                    st.session_state.historico = []
+                    st.session_state.erros = []
+                    st.session_state.acertos = []
+                    resetar_treino()
+                    resetar_revisao()
+                    resetar_simulado()
+                    resetar_prova()
+                    db.save_historico([])
+                    db.save_estado(st.session_state)
+                    db.limpar_provas()
+                    st.session_state.confirmar_zerar = False
+                    st.success("✅ Histórico zerado com sucesso!")
+                    st.rerun()
+                else:
+                    st.error("❌ Senha incorreta. Tente novamente.")
+        with col2:
+            if st.button("❌ Cancelar", use_container_width=True):
+                st.session_state.confirmar_zerar = False
+                st.rerun()
 
 # -------------------------------------------------------
 # Cabeçalho
@@ -1130,17 +1154,23 @@ elif modo == "Histórico de Provas":
                         with st.expander(f"Q{num} — {resp['codigo']} ({'✅ Correto' if correto else '❌ Errado'})"):
                             # Exibe a questão completa
                             card_questao(q, mostrar_objetivo=False)
-                            st.markdown(f"**Sua resposta:** {resp['resposta']}")
-                            st.markdown(f"**Resposta correta:** {resp['correta']}")
-                            if not correto:
+                            # Resposta do usuário (com texto da alternativa)
+                            if resp['resposta'] is not None:
+                                resp_texto = q['opcoes'].get(resp['resposta'], resp['resposta'])
+                                st.markdown(f"**Sua resposta:** {resp['resposta']}) {resp_texto}")
+                            else:
+                                st.markdown("**Sua resposta:** *Não respondida*")
+                            # Resposta correta (com texto)
+                            corr_texto = q['opcoes'].get(resp['correta'], resp['correta'])
+                            st.markdown(f"**Resposta correta:** {resp['correta']}) {corr_texto}")
+                            if not correto and resp['resposta'] is not None:
                                 st.markdown(f"**Explicação:** {q.get('explicacao', 'Sem explicação.')}")
                     else:
                         # Fallback: apenas a mensagem simples
                         if correto:
                             st.success(f"✅ Q{num} — {resp['codigo']}: correto ({resp['resposta']})")
                         else:
-                            st.error(f"❌ Q{num} — {resp['codigo']}: marcou **{resp['resposta']}** | correta: **{resp['correta']}**")
-                # Desempenho por módulo
+                            st.error(f"❌ Q{num} — {resp['codigo']}: marcou **{resp['resposta']}** | correta: **{resp['correta']}**")                # Desempenho por módulo
                 st.markdown("**Desempenho por módulo:**")
                 modulos = {}
                 for resp in respostas:
