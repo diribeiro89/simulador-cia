@@ -13,56 +13,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-# -------------------------------------------------------
-# CSS customizado para o mapa de questões
-# -------------------------------------------------------
-st.markdown("""
-<style>
-    /* Container do mapa */
-    .map-item {
-        display: inline-block;
-        width: 100%;
-        margin: 2px 0;
-    }
-    .map-item button {
-        min-width: 36px;
-        min-height: 36px;
-        padding: 4px 0;
-        border-radius: 8px;
-        font-weight: bold;
-        font-size: 14px;
-        border: 2px solid transparent;
-        transition: all 0.2s;
-        color: white !important;
-        background-color: #b33a3a !important;
-        border-color: #8a2a2a !important;
-        width: 100%;
-        text-align: center;
-    }
-    .map-item button:hover {
-        transform: scale(1.1);
-        opacity: 0.9;
-    }
-    /* Respondida - verde */
-    .map-item.map-respondida button {
-        background-color: #2a7a2a !important;
-        border-color: #1a5a1a !important;
-    }
-    /* Pendente - vermelho */
-    .map-item.map-pendente button {
-        background-color: #b33a3a !important;
-        border-color: #8a2a2a !important;
-    }
-    /* Questão atual - borda dourada e sombra */
-    .map-item.map-atual button {
-        border-color: #ffd700 !important;
-        box-shadow: 0 0 14px #ffd700 !important;
-        transform: scale(1.05);
-    }
-</style>
-""", unsafe_allow_html=True)
-
-# Captura parâmetro da URL para navegação no mapa (caso use)
+# Captura parâmetro da URL para navegação no mapa
 if "prova_go" in st.query_params:
     try:
         idx = int(st.query_params["prova_go"][0])
@@ -311,7 +262,7 @@ def obter_questoes_para_revisar():
     return [mapa[id] for id in ids_revisar if id in mapa]
 
 # -------------------------------------------------------
-# Descartar alternativas (COM DESTAQUE VISUAL)
+# Descartar alternativas
 # -------------------------------------------------------
 def toggle_descarte(q_id, letra):
     if q_id not in st.session_state.alternativas_descartadas:
@@ -925,7 +876,7 @@ elif modo == "Simulado":
             st.rerun()
 
 # =======================================================
-# MODO 4 — Prova ANBIMA (com mapa de questões)
+# MODO 4 — Prova ANBIMA (com mapa de questões via HTML inline)
 # =======================================================
 elif modo == "Prova":
     st.subheader("📝 Prova ANBIMA CGA")
@@ -1017,14 +968,9 @@ elif modo == "Prova":
                 text=f"Questão {i + 1} de {len(prov)} | {respondidas_n} respondidas",
             )
 
-        # --- MAPA DE QUESTÕES (com st.button e CSS) ---
+        # --- MAPA DE QUESTÕES (HTML inline sem quebras) ---
         with st.expander("🗺️ Mapa de Questões", expanded=False):
-            st.markdown("""
-            **Legenda:**  
-            🟢 <span style="color:#2a7a2a;">Respondida</span> &nbsp;&nbsp;|&nbsp;&nbsp; 
-            🔴 <span style="color:#b33a3a;">Pendente</span> &nbsp;&nbsp;|&nbsp;&nbsp; 
-            ⭐ <span style="color:#ffd700;">Questão atual</span>
-            """, unsafe_allow_html=True)
+            st.markdown("**Legenda:** 🟢 Respondida | 🔴 Pendente | ⭐ Questão atual", unsafe_allow_html=True)
             
             grupos = {}
             for idx, q_item in enumerate(prov):
@@ -1035,23 +981,18 @@ elif modo == "Prova":
             
             for grupo, lista in grupos.items():
                 st.markdown(f"**{grupo}**")
-                for j in range(0, len(lista), 10):
-                    cols = st.columns(min(10, len(lista) - j))
-                    for k in range(len(cols)):
-                        idx, q_item = lista[j + k]
-                        is_respondida = q_item['id'] in st.session_state.prova_respostas
-                        is_atual = (idx == i)
-                        classe = "map-respondida" if is_respondida else "map-pendente"
-                        if is_atual:
-                            classe += " map-atual"
-                        with cols[k]:
-                            st.markdown(f'<div class="map-item {classe}">', unsafe_allow_html=True)
-                            if st.button(str(idx + 1), key=f"map_{idx}", use_container_width=True):
-                                st.session_state.prova_i = idx
-                                st.rerun()
-                            st.markdown('</div>', unsafe_allow_html=True)
-                    if j + 10 < len(lista):
-                        st.divider()
+                # Construir HTML para uma linha de até 10 números
+                html_linha = '<div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px;">'
+                for idx, q_item in lista:
+                    is_respondida = q_item['id'] in st.session_state.prova_respostas
+                    is_atual = (idx == i)
+                    bg = "#2a7a2a" if is_respondida else "#b33a3a"
+                    border = "3px solid #ffd700; box-shadow: 0 0 12px #ffd700;" if is_atual else "2px solid #8a2a2a;"
+                    # Link com estilo inline (sem quebras)
+                    link = f'?prova_go={idx}'
+                    html_linha += f'<a href="{link}" style="display:inline-block;min-width:36px;padding:4px 0;background-color:{bg};color:white;text-decoration:none;border-radius:8px;font-weight:bold;font-size:14px;text-align:center;border:{border}transition:all 0.2s;" onmouseover="this.style.transform=\'scale(1.05)\';" onmouseout="this.style.transform=\'scale(1)\';">{idx+1}</a>'
+                html_linha += '</div>'
+                st.markdown(html_linha, unsafe_allow_html=True)
 
         st.divider()
         card_questao(q, mostrar_objetivo=False, mostrar_destaque=True)
@@ -1316,7 +1257,6 @@ elif modo == "Questões Destacadas":
         st.info("Nenhuma questão destacada. Marque questões com o botão ⭐ durante os estudos.")
         st.stop()
     
-    # Preparar lista de questões (apenas uma vez por sessão)
     if not st.session_state.destacada_lista:
         mapa = {q['id']: q for q in questoes}
         questions = [mapa[qid] for qid in st.session_state.destacadas if qid in mapa]
@@ -1348,13 +1288,11 @@ elif modo == "Questões Destacadas":
     
     q = st.session_state.destacada_lista[i]
     
-    # Progresso
     st.progress((i + 1) / total, text=f"Questão {i+1} de {total}")
     
     st.divider()
     card_questao(q, mostrar_objetivo=True, mostrar_destaque=True)
     
-    # Alternativas interativas (sem descarte, apenas radio)
     resposta_key = f"destacada_{q['id']}"
     if resposta_key not in st.session_state:
         st.session_state[resposta_key] = None
@@ -1389,9 +1327,7 @@ elif modo == "Questões Destacadas":
         with col2:
             if st.button("⭐ Remover destaque", use_container_width=True):
                 toggle_destaque(q['id'])
-                # Remover da lista atual
                 st.session_state.destacada_lista = [item for item in st.session_state.destacada_lista if item['id'] != q['id']]
-                # Ajustar índice se necessário
                 if st.session_state.destacada_i >= len(st.session_state.destacada_lista):
                     st.session_state.destacada_i = max(0, len(st.session_state.destacada_lista) - 1)
                 st.session_state.destacada_respondido = False
