@@ -207,3 +207,108 @@ def load_descartes() -> Dict[int, List[str]]:
         except:
             result[qid] = []
     return result
+
+# ===================== PROVAS =====================
+def salvar_prova(prova_data, respostas):
+    """
+    prova_data: dict com chaves: data, duracao_segundos, total_questoes, total_acertos
+    respostas: lista de dict com: questao_id, resposta, correta, tema, codigo, modulo
+    """
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    # Cria tabela se não existir
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS provas (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            data TEXT,
+            duracao_segundos INTEGER,
+            total_questoes INTEGER,
+            total_acertos INTEGER
+        )
+    ''')
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS respostas_prova (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            prova_id INTEGER,
+            questao_id INTEGER,
+            tema TEXT,
+            codigo TEXT,
+            modulo TEXT,
+            resposta TEXT,
+            correta TEXT,
+            FOREIGN KEY(prova_id) REFERENCES provas(id)
+        )
+    ''')
+    # Insere a prova
+    c.execute('''
+        INSERT INTO provas (data, duracao_segundos, total_questoes, total_acertos)
+        VALUES (?, ?, ?, ?)
+    ''', (
+        prova_data['data'],
+        prova_data['duracao_segundos'],
+        prova_data['total_questoes'],
+        prova_data['total_acertos']
+    ))
+    prova_id = c.lastrowid
+    # Insere as respostas
+    for resp in respostas:
+        c.execute('''
+            INSERT INTO respostas_prova (prova_id, questao_id, tema, codigo, modulo, resposta, correta)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        ''', (
+            prova_id,
+            resp['questao_id'],
+            resp['tema'],
+            resp['codigo'],
+            resp['modulo'],
+            resp['resposta'],
+            resp['correta']
+        ))
+    conn.commit()
+    conn.close()
+    return prova_id
+
+def carregar_provas():
+    """Retorna lista de dicionários com os metadados de todas as provas."""
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute('''
+        SELECT id, data, duracao_segundos, total_questoes, total_acertos
+        FROM provas
+        ORDER BY id DESC
+    ''')
+    rows = c.fetchall()
+    conn.close()
+    provas = []
+    for row in rows:
+        provas.append({
+            'id': row[0],
+            'data': row[1],
+            'duracao_segundos': row[2],
+            'total_questoes': row[3],
+            'total_acertos': row[4]
+        })
+    return provas
+
+def carregar_respostas_prova(prova_id):
+    """Retorna lista de respostas da prova."""
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute('''
+        SELECT questao_id, tema, codigo, modulo, resposta, correta
+        FROM respostas_prova
+        WHERE prova_id = ?
+    ''', (prova_id,))
+    rows = c.fetchall()
+    conn.close()
+    respostas = []
+    for row in rows:
+        respostas.append({
+            'questao_id': row[0],
+            'tema': row[1],
+            'codigo': row[2],
+            'modulo': row[3],
+            'resposta': row[4],
+            'correta': row[5]
+        })
+    return respostas
