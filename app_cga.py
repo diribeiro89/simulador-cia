@@ -4,7 +4,7 @@ import random
 import time
 from datetime import datetime, timedelta
 import pandas as pd
-import database as db
+import database_supabase as db
 
 st.set_page_config(
     page_title="Simulador CGA",
