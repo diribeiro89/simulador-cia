@@ -1,3 +1,6 @@
+SUPABASE_URL = st.secrets["supabase"]["url"]
+SUPABASE_KEY = st.secrets["supabase"]["key"]
+
 # database_supabase.py
 import json
 import os
