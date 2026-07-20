@@ -1,19 +1,14 @@
-SUPABASE_URL = st.secrets["supabase"]["url"]
-SUPABASE_KEY = st.secrets["supabase"]["key"]
-
-# database_supabase.py
+import streamlit as st
 import json
-import os
 from datetime import datetime
 from typing import List, Dict, Any
 from supabase import create_client, Client
 
 # ========================================
-# CONFIGURAÇÃO
+# CONFIGURAÇÃO VIA SECRETS (Streamlit Cloud)
 # ========================================
-# Pegue essas informações do seu projeto Supabase em Settings > API
-SUPABASE_URL = os.environ.get("SUPABASE_URL", "https://cfzhairpkssplavlpdlt.supabase.co/rest/v1/")
-SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNmemhhaXJwa3NzcGxhdmxwZGx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ1MjEzNTYsImV4cCI6MjEwMDA5NzM1Nn0.Qq4G3IsluFHUd2TDDH-1TpTyefOw6llEoUD4NIjJiOM")
+SUPABASE_URL = st.secrets["supabase"]["url"]
+SUPABASE_KEY = st.secrets["supabase"]["key"]
 
 # Inicializa o cliente Supabase
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
@@ -26,10 +21,7 @@ def init_db():
 # HISTÓRICO
 # ========================================
 def save_historico(historico: List[Dict[str, Any]]):
-    """Salva o histórico substituindo tudo."""
-    # Limpa tabela
     supabase.table("historico").delete().neq("id", 0).execute()
-    # Insere novos registros
     for reg in historico:
         supabase.table("historico").insert({
             "data": reg.get('data'),
@@ -45,7 +37,6 @@ def save_historico(historico: List[Dict[str, Any]]):
         }).execute()
 
 def load_historico() -> List[Dict[str, Any]]:
-    """Carrega o histórico."""
     response = supabase.table("historico").select("*").order("id", desc=False).execute()
     historico = []
     for row in response.data:
@@ -67,7 +58,6 @@ def load_historico() -> List[Dict[str, Any]]:
 # ESTADO
 # ========================================
 def save_estado(estado: Dict[str, Any]):
-    """Salva o estado (modo, filtros, índices, etc.)."""
     chaves_persistir = [
         'modo', 'filtro_tema_atual', 'filtro_objetivo_atual',
         'questao_atual', 'respondido', 'resposta_usuario',
@@ -88,7 +78,6 @@ def save_estado(estado: Dict[str, Any]):
     }).execute()
 
 def load_estado() -> Dict[str, Any]:
-    """Carrega o estado salvo."""
     response = supabase.table("estado").select("*").eq("chave", "state").execute()
     if not response.data:
         return {}
@@ -98,7 +87,7 @@ def load_estado() -> Dict[str, Any]:
         return {}
 
 # ========================================
-# ERROS (RECONSTRUÇÃO A PARTIR DOS IDS)
+# ERROS
 # ========================================
 def load_erros(questoes: List[Dict]) -> List[Dict]:
     estado = load_estado()
@@ -124,7 +113,7 @@ def load_leitner() -> Dict[int, Dict]:
     return result
 
 # ========================================
-# DESCARTAR ALTERNATIVAS
+# DESCARTES
 # ========================================
 def save_descartes(questao_id: int, letras: List[str]):
     json_letras = json.dumps(letras)
@@ -147,7 +136,6 @@ def load_descartes() -> Dict[int, List[str]]:
 # PROVAS
 # ========================================
 def salvar_prova(prova_data, respostas):
-    # Insere a prova
     response = supabase.table("provas").insert({
         "data": prova_data['data'],
         "duracao_segundos": prova_data['duracao_segundos'],
@@ -156,7 +144,6 @@ def salvar_prova(prova_data, respostas):
     }).execute()
     prova_id = response.data[0]['id']
     
-    # Insere as respostas
     for resp in respostas:
         supabase.table("respostas_prova").insert({
             "prova_id": prova_id,
