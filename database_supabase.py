@@ -9,8 +9,8 @@ from supabase import create_client, Client
 # CONFIGURAÇÃO
 # ========================================
 # Pegue essas informações do seu projeto Supabase em Settings > API
-SUPABASE_URL = os.environ.get("SUPABASE_URL", "https://seu-projeto.supabase.co")
-SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "sua-chave-anon-public-aqui")
+SUPABASE_URL = os.environ.get("SUPABASE_URL", "https://cfzhairpkssplavlpdlt.supabase.co/rest/v1/")
+SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNmemhhaXJwa3NzcGxhdmxwZGx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ1MjEzNTYsImV4cCI6MjEwMDA5NzM1Nn0.Qq4G3IsluFHUd2TDDH-1TpTyefOw6llEoUD4NIjJiOM")
 
 # Inicializa o cliente Supabase
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
