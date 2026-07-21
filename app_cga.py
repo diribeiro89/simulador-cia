@@ -187,7 +187,6 @@ def inicializar_estado():
         "busca_questao": None,
         "busca_respondido": False,
         "busca_resposta": None,
-        # Simulado FK Oficial removido, agora integrado como uma aba
     }
     for k, v in defaults.items():
         if k not in st.session_state:
@@ -200,6 +199,20 @@ def inicializar_estado():
     st.session_state.leitner = db.load_leitner()
     st.session_state.alternativas_descartadas = db.load_descartes()
     st.session_state.destacadas = db.carregar_destacadas()
+    
+    # Garantir que o modo seja válido
+    modos_validos = [
+        "Treino livre", "Revisar erros", "Simulado", "Prova",
+        "Histórico de Provas", "Questões Destacadas", "Buscar Questão", "Dashboard"
+    ]
+    if st.session_state.modo not in modos_validos:
+        st.session_state.modo = "Treino livre"
+    
+    # Garantir que a fonte seja válida
+    fontes_validas = list(bancos.keys())
+    if st.session_state.fonte_atual not in fontes_validas:
+        st.session_state.fonte_atual = "Banco Principal"
+    
     if st.session_state.questao_atual:
         pass
 
@@ -257,7 +270,6 @@ def resetar_busca():
     st.session_state.busca_resposta = None
 
 def resetar_simulado_estado(nome_simulado):
-    """Remove o estado de um simulado específico."""
     if nome_simulado in st.session_state.simulados_estados:
         del st.session_state.simulados_estados[nome_simulado]
 
@@ -715,7 +727,7 @@ modo_options = [
 modo = st.sidebar.radio(
     "Modo de estudo",
     modo_options,
-    index=modo_options.index(st.session_state.modo),
+    index=modo_options.index(st.session_state.modo) if st.session_state.modo in modo_options else 0,
 )
 
 if modo != st.session_state.modo:
@@ -1240,7 +1252,7 @@ elif modo == "Prova":
             st.rerun()
 
 # =======================================================
-# MODO 5 — Histórico de Provas (mesmo de antes)
+# MODO 5 — Histórico de Provas
 # =======================================================
 elif modo == "Histórico de Provas":
     st.subheader("📚 Histórico de Provas Realizadas")
