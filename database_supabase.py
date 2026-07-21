@@ -205,3 +205,47 @@ def carregar_destacadas():
 
 def limpar_destacadas():
     supabase.table("destacadas").delete().neq("questao_id", 0).execute()
+
+# ========================================
+# HISTÓRICO DE SIMULADOS
+# ========================================
+def salvar_simulado_historico(historico_data):
+    """
+    historico_data = {
+        'data': str,
+        'fonte': str,
+        'total_questoes': int,
+        'acertos': int,
+        'nao_respondidas': int,
+        'tempo_segundos': int,
+        'questoes_ids': list (opcional)
+    }
+    """
+    supabase.table("simulados_historico").insert({
+        "data": historico_data['data'],
+        "fonte": historico_data['fonte'],
+        "total_questoes": historico_data['total_questoes'],
+        "acertos": historico_data['acertos'],
+        "nao_respondidas": historico_data['nao_respondidas'],
+        "tempo_segundos": historico_data['tempo_segundos'],
+        "questoes_ids": json.dumps(historico_data.get('questoes_ids', []))
+    }).execute()
+
+def carregar_simulados_historico():
+    response = supabase.table("simulados_historico").select("*").order("id", desc=True).execute()
+    historico = []
+    for row in response.data:
+        historico.append({
+            'id': row['id'],
+            'data': row['data'],
+            'fonte': row['fonte'],
+            'total_questoes': row['total_questoes'],
+            'acertos': row['acertos'],
+            'nao_respondidas': row['nao_respondidas'],
+            'tempo_segundos': row['tempo_segundos'],
+            'questoes_ids': json.loads(row['questoes_ids']) if row['questoes_ids'] else []
+        })
+    return historico
+
+def limpar_simulados_historico():
+    supabase.table("simulados_historico").delete().neq("id", 0).execute()
