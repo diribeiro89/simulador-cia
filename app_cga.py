@@ -151,7 +151,7 @@ def inicializar_estado():
         "modo": "Treino livre",
         "filtro_tema_atual": "Todos",
         "filtro_objetivo_atual": "Todos",
-        "fonte_atual": "Banco Principal",
+        "fonte_atual": "Banco Principal",  # <-- definido aqui
         "questao_atual": None,
         "respondido": False,
         "resposta_usuario": None,
@@ -193,7 +193,6 @@ def inicializar_estado():
         "busca_questao": None,
         "busca_respondido": False,
         "busca_resposta": None,
-        # Simulado FK Oficial
         "simulado_oficial_questoes": [],
         "simulado_oficial_respostas": {},
         "simulado_oficial_i": 0,
@@ -210,18 +209,28 @@ def inicializar_estado():
         if k in st.session_state:
             st.session_state[k] = v
     st.session_state.historico = db.load_historico()
-    st.session_state.erros = db.load_erros(questoes_buscadas())
+    st.session_state.erros = db.load_erros(questoes_para_erros())
     st.session_state.leitner = db.load_leitner()
     st.session_state.alternativas_descartadas = db.load_descartes()
     st.session_state.destacadas = db.carregar_destacadas()
+    # Verifica se a questão atual ainda existe
     if st.session_state.questao_atual:
-        # Verifica se a questão atual ainda existe no banco atual
         pass
+
+def questoes_para_erros():
+    """Retorna todas as questões de todos os bancos para reconstruir erros."""
+    todas = []
+    for lista in bancos.values():
+        todas.extend(lista)
+    return todas
 
 def questoes_buscadas():
     """Retorna a lista de questões da fonte selecionada."""
     fonte = st.session_state.get("fonte_atual", "Banco Principal")
     return bancos.get(fonte, [])
+
+# Inicializa o estado (chamado antes de qualquer uso do session_state)
+inicializar_estado()
 
 # -------------------------------------------------------
 # Resets
@@ -309,7 +318,6 @@ def obter_questoes_para_revisar():
         if dados['proxima'] and dados['proxima'] <= hoje:
             ids_revisar.append(qid)
     ids_revisar.sort(key=lambda x: st.session_state.leitner[x]['nivel'])
-    # Precisamos buscar as questões completas de todos os bancos
     todas = []
     for lista in bancos.values():
         todas.extend(lista)
@@ -746,7 +754,6 @@ elif modo == "Simulado":
     st.subheader("Simulado personalizado")
 
     if not st.session_state.simulado_ativo and not st.session_state.simulado_finalizado:
-        # Usa a fonte selecionada
         base_sim = questoes_buscadas()
         if not base_sim:
             st.warning("Nenhuma questão disponível na fonte selecionada.")
@@ -960,7 +967,6 @@ elif modo == "Simulado FK Oficial":
     st.caption("45 questões sorteadas dos Simulados 1 a 4 | 2h30")
 
     if not st.session_state.simulado_oficial_ativo and not st.session_state.simulado_oficial_finalizado:
-        # Combina os 4 simulados
         simulados = []
         for nome in ["Simulado 1", "Simulado 2", "Simulado 3", "Simulado 4"]:
             simulados.extend(bancos.get(nome, []))
@@ -1144,6 +1150,7 @@ elif modo == "Simulado FK Oficial":
         if st.button("🔄 Novo Simulado FK", use_container_width=True):
             resetar_simulado_oficial()
             st.rerun()
+
 
 # =======================================================
 # MODO 5 — Prova ANBIMA
