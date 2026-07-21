@@ -1,0 +1,767 @@
+[
+  {
+    "id": 1,
+    "numero_original": 1,
+    "codigo": "FK9898",
+    "versao": 12,
+    "tema": "CGA - Gestão de Carteiras - Renda Fixa",
+    "objetivo": "Descrever estratégias de gestão da curva de juros, suas características e seus possíveis resultados dados diferentes cenários de movimentação da curva de juros: steepening, flattening e butterfly.",
+    "pergunta": "Na preparação de um comentário para a mesa internacional de renda fixa, a equipe precisava interpretar o comportamento relativo de dois títulos públicos norte-americanos de prazos bastante distintos, observando seu preço atual e a variação acumulada em três janelas de tempo. O objetivo era extrair, a partir desse confronto entre ponta curta e ponta longa, uma leitura consistente sobre o movimento da curva de juros, sem recorrer a projeções adicionais nem a hipóteses fora dos dados apresentados. Sobre as cotações dos seguintes títulos públicos norte-americanos:\n\nTítulo: GT2:GOV 2 Year\nPreço atual: 99,83\nΔ% 1 mês: -0,05%\nΔ% 6 meses: -0,12%\nΔ% 12 meses: -0,13%\n\nTítulo: GT30:GOV 30 Year\nPreço atual: 102,08\nΔ% 1 mês: 0,52%\nΔ% 6 meses: 1,12%\nΔ% 12 meses: 1,87%\n\nÉ possível inferir, em relação à curva de juros americana, que:",
+    "opcoes": {
+      "A": "houve um aumento de inclinação em todos os períodos analisados.",
+      "B": "a taxa de juros de 2 anos apresentou variação negativa em todos os períodos analisados.",
+      "C": "houve um aumento de inclinação apenas nos últimos 12 meses.",
+      "D": "houve um achatamento da curva em todos os períodos analisados."
+    },
+    "correta": "D",
+    "explicacao": "Tendo em vista que em todos os períodos analisados o título de 2 anos apresentou desvalorização, enquanto o de 30 anos se valorizou, é possível concluir que as taxas aumentaram no curto prazo e reduziram no longo prazo, evidenciando movimentos de achatamento da curva."
+  },
+  {
+    "id": 2,
+    "numero_original": 2,
+    "codigo": "FK15460",
+    "versao": 9,
+    "tema": "CGA - Gestão de Carteiras - Renda Fixa",
+    "objetivo": "Entender e explicar a medida de convexidade de um título de renda fixa, bem como explicar os conceitos de convexidade positiva e negativa.",
+    "pergunta": "Após uma simulação de deslocamento paralelo da curva de juros mostrar que dois títulos com duration semelhante podiam reagir de forma distinta à mesma variação de taxa, o gestor decidiu retomar com a equipe o papel da convexidade na mensuração de risco. A ideia era reforçar que a convexidade captura a curvatura da relação entre preço e yield e, por isso, ajuda a explicar por que certos papéis perdem menos quando os juros sobem e ganham mais quando eles caem. Considerando esse efeito da convexidade em uma mudança paralela na curva de juros, é correto afirmar que o título com maior convexidade tende a apresentar:",
+    "opcoes": {
+      "A": "maior perda em aumento de taxa.",
+      "B": "menor ganho em redução de taxa.",
+      "C": "maior ganho em aumento de taxa.",
+      "D": "menor perda em aumento de taxa."
+    },
+    "correta": "D",
+    "explicacao": "A convexidade é um componente de segunda ordem na relação entre preço e taxa de juros. O título com maior convexidade sofre menor perda em aumentos no nível de taxa de juros e maior ganho em reduções, em comparação a um título com a mesma duration, beneficiando o investidor."
+  },
+  {
+    "id": 3,
+    "numero_original": 3,
+    "codigo": "FK14649",
+    "versao": 12,
+    "tema": "CGA - Gestão de Carteiras - Renda Fixa",
+    "objetivo": "Analisar, sob a ótica do risco e do retorno, os possíveis efeitos da utilização de derivativos em carteiras de renda fixa: contratos a termo, contratos futuros, opções, swaps e derivativos de crédito.",
+    "pergunta": "A diretoria financeira da Empresa Alfa S.A. revisava a exposição de sua estrutura de captação e aplicação depois de uma mudança de expectativa para a trajetória das taxas de juros. A companhia havia emitido dívida prefixada e direcionado os recursos captados para aplicações atreladas ao CDI. A Empresa Alfa S.A. emitiu uma dívida prefixada a 14% a.a. e aplicou os recursos em investimentos que rendem CDI + 0,80% a.a. Após alguns meses, a administração acredita que as taxas de juros irão cair e decide fazer um swap de taxa de juros para proteger a posição (hedge). Qual dos seguintes swaps representa a estratégia de hedge adequada para esse cenário?",
+    "opcoes": {
+      "A": "Ativo: taxa fixa / Passivo: CDI.",
+      "B": "Ativo: CDI / Passivo: taxa fixa.",
+      "C": "Ativo: inflação (IPCA) / Passivo: CDI + spread.",
+      "D": "Ativo: taxa de câmbio / Passivo: taxa fixa."
+    },
+    "correta": "A",
+    "explicacao": "A empresa tem dívida prefixada, ou seja, passivo fixo a 14% a.a. Se os juros caírem, essa dívida fica relativamente mais cara em termos de oportunidade, pois ela continua pagando taxa alta fixa. Para proteger-se, deve trocar a obrigação de pagar taxa fixa por pagar CDI, beneficiando-se da queda do CDI. No swap, isso equivale a ficar ativa em taxa fixa e passiva em CDI."
+  },
+  {
+    "id": 4,
+    "numero_original": 4,
+    "codigo": "FK14366",
+    "versao": 9,
+    "tema": "CGA - Gestão de Carteiras - Renda Fixa",
+    "objetivo": "Descrever os formatos da curva de juros e analisar suas implicações para a gestão de uma carteira de renda fixa.",
+    "pergunta": "Na Serra Azul Asset, em Belo Horizonte, Helena preparava a revisão tática da carteira de renda fixa de um fundo previdenciário quando os relatórios macroeconômicos passaram a indicar desaceleração mais intensa da atividade, enfraquecimento do consumo e aumento da probabilidade de recessão nos trimestres seguintes. Como o formato da curva interfere na escolha dos vencimentos, no peso relativo dos vértices curtos e longos e na leitura implícita sobre a trajetória futura da economia, o diretor de investimentos pediu que a equipe identificasse qual desenho tende a prevalecer. Diante desse quadro, a curva de juros provavelmente será:",
+    "opcoes": {
+      "A": "ascendente, com os juros de longo prazo superiores aos de curto prazo.",
+      "B": "plana, com os juros de todos os vencimentos aproximadamente iguais.",
+      "C": "invertida, com os juros de curto prazo superiores aos de longo prazo.",
+      "D": "lognormal."
+    },
+    "correta": "C",
+    "explicacao": "A curva de juros futura pode ser dividida em juros de curto prazo e de longo prazo. Os juros de curto prazo ainda estarão altos, pois a economia ainda reflete inflações altas dos meses anteriores, quando estava em forte crescimento. Já os juros de longo prazo precificam recessão maior, menos inflação e, portanto, quedas nas taxas de juros. Assim, a curva teria juros altos nos vértices curtos e juros mais baixos nos vértices longos, caracterizando inversão."
+  },
+  {
+    "id": 5,
+    "numero_original": 5,
+    "codigo": "FK13052",
+    "versao": 9,
+    "tema": "CGA - Gestão de Carteiras - Renda Fixa",
+    "objetivo": "Descrever estratégias de gestão da curva de juros, suas características e seus possíveis resultados dados diferentes cenários de movimentação da curva de juros: steepening, flattening e butterfly.",
+    "pergunta": "Na leitura de Mariana, responsável pela estratégia macro de uma gestora voltada a clientes institucionais, o cenário para os meses seguintes combinava aperto monetário, maior sensibilidade dos vértices curtos e avanço também das taxas mais longas. Como a equipe ainda confundia os movimentos de inclinação associados a ciclos de restrição com outros ajustes da curva, ela pediu que os analistas classificassem corretamente o comportamento esperado, considerando não apenas a direção das taxas longas, mas também o ritmo relativo de variação dos vencimentos curtos. Se um gestor aposta que as taxas de juros de longo prazo aumentarão, qual é o movimento esperado da curva de juros?",
+    "opcoes": {
+      "A": "bear flattener, se as taxas de curto prazo aumentarem com maior rapidez.",
+      "B": "bear flattener, se as taxas de curto prazo aumentarem com menor rapidez.",
+      "C": "bull flattener, se as taxas de curto prazo aumentarem com maior rapidez.",
+      "D": "bull flattener, se as taxas de curto prazo aumentarem com menor rapidez."
+    },
+    "correta": "A",
+    "explicacao": "No movimento denominado bear flattener, as taxas de curto prazo aumentam com maior rapidez do que as taxas de longo prazo. Esse cenário tende a ocorrer quando há expectativas pessimistas de que a autoridade monetária adote política monetária mais restritiva e aumente as taxas de juros de curto prazo."
+  },
+  {
+    "id": 6,
+    "numero_original": 6,
+    "codigo": "FK22299",
+    "versao": 5,
+    "tema": "CGA - Gestão de Carteiras - Renda Fixa",
+    "objetivo": "Descrever estratégias de gestão da curva de juros, suas características e seus possíveis resultados dados diferentes cenários de movimentação da curva de juros: steepening, flattening e butterfly.",
+    "pergunta": "Na revisão do relatório de sensibilidade da carteira Alfa Previdência, a equipe técnica compara três estruturas já ajustadas ao mesmo passivo de vencimento único. A primeira concentra títulos no entorno do prazo do compromisso, a segunda distribui vencimentos ao longo da curva e a terceira combina posições curtas e longas, com baixa presença no prazo intermediário. O cenário econômico trabalha com alta de 10 pontos-base no vértice curto, alta de 35 pontos-base no vértice intermediário e alta de 90 pontos-base no vértice longo. A ata deve registrar o tipo de movimento da curva e a estrutura que tende a apresentar o melhor desempenho relativo entre as três. Qual conclusão deve constar do relatório?",
+    "opcoes": {
+      "A": "O cenário caracteriza um bear steepening; nesse caso, a alta mais intensa no vértice longo tende a prejudicar mais a carteira com maior exposição a esse prazo, favorecendo a estrutura concentrada no entorno do passivo.",
+      "B": "O cenário caracteriza um bear steepening; nesse caso, a alta mais intensa no vértice longo tende a favorecer a estrutura formada por posições curtas e longas, em razão de sua maior convexidade.",
+      "C": "O cenário caracteriza um bull steepening; nesse caso, a alta menos intensa no vértice curto tende a favorecer a estrutura concentrada no entorno do passivo, por reduzir sua exposição aos vencimentos longos.",
+      "D": "O cenário caracteriza um bull steepening; nesse caso, a alta mais intensa no vértice longo tende a favorecer a estrutura formada por posições curtas e longas, pois a maior convexidade prevalece sobre o efeito duration."
+    },
+    "correta": "A",
+    "explicacao": "O cenário caracteriza um bear steepening, pois há aumento das taxas em todos os vértices, com alta mais intensa no longo prazo, ampliando a inclinação da curva. Em movimentos de alteração de inclinação, diferentemente dos movimentos paralelos, o efeito duration tende a predominar sobre o efeito convexidade, especialmente porque a variação do vértice longo produz impacto mais relevante sobre os preços. Entre carteiras imunizadas para o mesmo passivo, a estrutura concentrada no entorno do prazo do compromisso tende a apresentar melhor desempenho relativo, pois possui menor exposição comparativa ao vértice longo do que a estrutura formada por posições curtas e longas. A maior convexidade da barbell não basta para torná-la superior em movimento não paralelo com alta mais forte nas taxas longas, e a classificação como bull steepening é incompatível com elevação das taxas."
+  },
+  {
+    "id": 7,
+    "numero_original": 7,
+    "codigo": "FK22306",
+    "versao": 5,
+    "tema": "CGA - Gestão de Carteiras - Renda Fixa",
+    "objetivo": "Entender, explicar e calcular as medidas de dollar duration, spread duration, key rate duration e convexidade, bem como entender sua importância para a gestão de carteiras de renda fixa em relação a passivos.",
+    "pergunta": "Na revisão tática da carteira Global Income, a mesa discute se deve manter uma posição relevante em crédito corporativo internacional após nova rodada de abertura de spreads. A carteira possui 40% em uma Treasury Note com duration modificada de 6,0 e 60% em um high-yield bond com duration modificada de 4,0 e spread duration de 5,0. O high-yield bond é negociado com deságio, possui current yield elevado e YTM superior ao da Treasury Note. Para o cenário de estresse do relatório, a curva dos títulos do Tesouro norte-americano sofre queda paralela de 50 pontos-base, enquanto o spread de crédito do high-yield bond aumenta 120 pontos-base, sem evento de default. A análise deve estimar o efeito de preço, antes de cupom e impostos. Qual conclusão deve prevalecer?",
+    "opcoes": {
+      "A": "A carteira apresenta ganho aproximado de 2,40%, de modo que a alocação em high-yield deve ser mantida; a queda da curva livre de risco explica o efeito de preço relevante no cenário.",
+      "B": "A carteira apresenta perda aproximada de 1,20%, de modo que o spread do high-yield bond deve ser tratado como principal fator de risco do cenário, apesar da queda da curva livre de risco.",
+      "C": "A carteira apresenta perda aproximada de 2,40%, de modo que o efeito da abertura de spread deve ser medido sem considerar o ganho de taxa do high-yield bond no mesmo cenário.",
+      "D": "A carteira apresenta perda aproximada de 4,00%, de modo que o efeito líquido do high-yield bond deve ser aplicado integralmente à carteira, sem ponderação pela posição em Treasury Note."
+    },
+    "correta": "B",
+    "explicacao": "A Treasury Note tende a ganhar aproximadamente 3,00%, pois a queda paralela de 50 pontos-base na curva livre de risco gera efeito positivo de preço pela duration modificada de 6,0. No high-yield bond, a queda da taxa livre de risco gera ganho aproximado de 2,00%, pela duration modificada de 4,0, mas a abertura de 120 pontos-base no spread de crédito gera perda aproximada de 6,00%, pela spread duration de 5,0. O efeito líquido do high-yield bond é perda de 4,00%. Como a carteira possui 40% em Treasury Note e 60% em high-yield bond, o efeito consolidado é 0,40 x 3,00% + 0,60 x (-4,00%) = -1,20%. Assim, mesmo com queda da curva livre de risco e YTM superior no papel de crédito, a abertura de spread domina o cenário."
+  },
+  {
+    "id": 8,
+    "numero_original": 8,
+    "codigo": "FK22308",
+    "versao": 5,
+    "tema": "CGA - Gestão de Carteiras - Renda Fixa",
+    "objetivo": "Explicar, comparar e saber recomendar as estratégias de hedge que podem ser implementadas em uma carteira de renda fixa, especificamente aquelas relativas aos riscos de câmbio, juros e crédito, e analisar suas limitações.",
+    "pergunta": "Para proteger a parcela internacional de uma carteira cuja moeda-base é o real e cuja política busca neutralizar a variação cambial dos fluxos futuros, a Baruna Gestão mantém ativos prefixados denominados em dólar, com cupons semestrais e principal no vencimento. O relatório de risco mostra que os valores a receber em dólar ocorrerão em várias datas e que a duration da posição se altera com a passagem do tempo e com mudanças nas taxas. A política permite uso de contratos a termo, futuros, swaps e opções, desde que a proteção seja compatível com os fluxos da carteira e seu custo seja acompanhado. A análise também observa que o gestor não pretende comprar proteção de crédito para todos os emissores, por causa do custo. Qual orientação de hedge é mais adequada?",
+    "opcoes": {
+      "A": "Concentrar a proteção cambial no valor presente da posição e manter o hedge de taxa pelo prazo original, pois a equivalência inicial de duration reduz o risco gerado por datas distintas dos recebimentos.",
+      "B": "Proteger os fluxos em moeda estrangeira nas respectivas datas e manter o hedge de taxa pelo prazo original, pois as opções preservam exposição estável quando contratadas com o mesmo vencimento dos ativos.",
+      "C": "Proteger os fluxos em moeda estrangeira nas respectivas datas e rebalancear o hedge de taxa quando duration ou delta se alterarem, ponderando o custo entre proteção integral e exposição residual.",
+      "D": "Concentrar a proteção cambial no valor presente da posição e rebalancear o hedge de taxa quando duration ou delta se alterarem, pois o ajuste de juros também corrige descasamentos de câmbio entre os fluxos."
+    },
+    "correta": "C",
+    "explicacao": "A orientação adequada é proteger os fluxos em moeda estrangeira nas datas em que serão recebidos e rebalancear a proteção de taxa quando a duration ou o delta das opções se modificarem. Em uma carteira com ativos em moeda estrangeira e moeda-base distinta, fazer hedge apenas do valor presente deixa exposição entre as datas dos fluxos. Na exposição a juros, a proteção também não deve ser estática, pois passagem do tempo e mudanças nas taxas alteram a duration da carteira e o delta das opções. A proteção de crédito para todos os emissores pode ter custo elevado, exigindo equilíbrio entre proteção integral, custo de implementação e risco remanescente."
+  },
+  {
+    "id": 9,
+    "numero_original": 9,
+    "codigo": "FK22309",
+    "versao": 5,
+    "tema": "CGA - Gestão de Carteiras - Renda Fixa",
+    "objetivo": "Analisar o risco de imunização relacionado às mudanças não paralelas na curva de yield e formular maneiras para reduzir esses riscos.",
+    "pergunta": "A Fundação Candeal recebeu três propostas de carteira para uma obrigação previdenciária com vencimento em oito anos, todas com mesmo valor presente e mesma duration agregada de 8,0. A Carteira A concentra a maior parte dos fluxos perto do vencimento do passivo; a Carteira B distribui vencimentos de forma escalonada; e a Carteira C combina ativos curtos e longos, com baixa exposição ao prazo intermediário. A área de risco, usando key rate duration, estimou as exposições nos vértices de 2, 8 e 14 anos: Carteira A = 1,0; 6,0; 1,0. Carteira B = 2,5; 3,0; 2,5. Carteira C = 3,5; 1,0; 3,5. O cenário adverso considera altas de 10, 30 e 90 pontos-base nos respectivos vértices. A política prioriza a menor perda estimada no cenário não paralelo, ainda que haja expectativa secundária de ganho em eventual deslocamento paralelo de baixa. Qual decisão deve ser registrada?",
+    "opcoes": {
+      "A": "Selecionar a Carteira C, pois sua perda estimada é de 3,80% e a maior convexidade da estrutura com ativos curtos e longos favorece a carteira no cenário adverso.",
+      "B": "Selecionar a Carteira A, pois sua perda estimada é de 2,80%, menor que a da Carteira B e a da Carteira C; a vantagem de convexidade da Carteira C é mais relevante em deslocamentos paralelos.",
+      "C": "Selecionar a Carteira B, pois sua perda estimada é de 3,40% e a distribuição escalonada representa a melhor combinação de exposições entre os vértices.",
+      "D": "Tratar as três carteiras como equivalentes, pois a mesma duration agregada de 8,0 permite estimar a perda pelo deslocamento do vértice intermediário, resultando em queda aproximada de 2,40%."
+    },
+    "correta": "B",
+    "explicacao": "A decisão correta é selecionar a Carteira A, pois o cenário não é paralelo e a distribuição da sensibilidade por vértice passa a ser determinante. Carteira A: 1,0 x 0,10% + 6,0 x 0,30% + 1,0 x 0,90% = 2,80%. Carteira B: 2,5 x 0,10% + 3,0 x 0,30% + 2,5 x 0,90% = 3,40%. Carteira C: 3,5 x 0,10% + 1,0 x 0,30% + 3,5 x 0,90% = 3,80%. A mesma duration agregada ajuda em deslocamentos paralelos, mas não elimina diferenças de exposição aos vértices em cenários não paralelos. A maior convexidade da estrutura com ativos curtos e longos tende a favorecer em movimentos paralelos, mas no cenário adverso a alta mais intensa no vértice longo prejudica a carteira com maior exposição a esse prazo."
+  },
+  {
+    "id": 10,
+    "numero_original": 10,
+    "codigo": "FK22310",
+    "versao": 5,
+    "tema": "CGA - Gestão de Carteiras - Renda Fixa",
+    "objetivo": "Estimar o novo preço de um título ou de uma carteira de títulos de renda fixa após uma variação na taxa de juros, dadas informações sobre a duration e a convexidade do papel.",
+    "pergunta": "A carteira Turmalina RF precisa reduzir a perda estimada em um estresse de alta paralela de 200 pontos-base nas taxas, sem uso de derivativos. A composição atual possui 55% no Ativo A, com duration modificada de 4,0 e convexidade de 30, e 45% no Ativo B, com duration modificada de 8,0 e convexidade de 110. Uma proposta desloca parte da posição para o Ativo A, resultando em 70% no Ativo A e 30% no Ativo B. O Ativo B aumenta a convexidade da carteira e tende a favorecer o desempenho em quedas relevantes de taxa, mas a política prioriza a menor perda estimada no cenário de alta, antes de cupons, custos e efeitos de crédito. Qual conclusão deve constar da análise?",
+    "opcoes": {
+      "A": "Manter a composição atual, pois sua maior convexidade reduz a perda estimada para 9,32%, enquanto a proposta com menor convexidade amplia a perda para 10,28% no estresse de alta.",
+      "B": "Adotar a proposta 70%/30%, pois a perda estimada cai de 10,28% para 9,32%; a composição atual preserva maior ganho em queda de taxas, mas sofre mais no estresse de alta.",
+      "C": "Manter a composição atual, pois a perda de 10,28% é compensada pelo maior ganho potencial em cenário de baixa, o que atende à política de menor perda no estresse.",
+      "D": "Tratar as composições como equivalentes, pois a redução de duration na proposta compensa sua menor convexidade e mantém a perda estimada próxima de 10,00% em ambos os casos."
+    },
+    "correta": "B",
+    "explicacao": "A proposta 70%/30% deve ser adotada porque reduz a perda estimada no cenário de alta paralela de 200 pontos-base. Na composição atual, a duration modificada é 0,55 x 4,0 + 0,45 x 8,0 = 5,80, e a convexidade é 0,55 x 30 + 0,45 x 110 = 66,00. Com variação de taxa de 0,02, a estimativa é -5,80 x 0,02 + 0,5 x 66,00 x 0,02² = -10,28%. Na proposta, a duration passa a 0,70 x 4,0 + 0,30 x 8,0 = 5,20, e a convexidade a 0,70 x 30 + 0,30 x 110 = 54,00. A perda estimada é -5,20 x 0,02 + 0,5 x 54,00 x 0,02² = -9,32%. A composição atual mantém maior convexidade e tende a capturar ganho superior em quedas relevantes de taxa, mas esse não é o critério prioritário da política no cenário testado."
+  },
+  {
+    "id": 11,
+    "numero_original": 11,
+    "codigo": "FK22406",
+    "versao": 5,
+    "tema": "CGA - Gestão de Carteiras - Renda Fixa",
+    "objetivo": "Explicar e comparar estratégias de gestão de carteiras de renda fixa em relação a um índice: indexação pura, indexação reforçada (enhanced indexing) e gestão ativa.",
+    "pergunta": "Um fundo de renda fixa recebeu mandato para acompanhar um índice amplo de títulos públicos e corporativos. O índice possui grande número de papéis, parte deles com baixa liquidez, diferentes setores de crédito, vencimentos distribuídos pela curva e exposição relevante a torções, não apenas a deslocamentos paralelos. A política não autoriza apostas direcionais de taxa, crédito ou setor, mas aceita que a carteira não compre todos os títulos se mantiver aderência aos fatores que explicam o comportamento do benchmark. A mesa operacional alerta que a replicação integral elevaria custos e reduziria eficiência, enquanto a área de risco rejeita economias de transação que criem fonte recorrente de retorno ativo. Na definição da estratégia de gestão, deve prevalecer:",
+    "opcoes": {
+      "A": "adotar indexação pura, comprando todos os títulos do índice em seus pesos, pois só a replicação integral preserva baixo tracking error em renda fixa.",
+      "B": "adotar indexação reforçada com pequenas discrepâncias setoriais e de spread, usando desvios controlados para compensar custos administrativos.",
+      "C": "adotar carteira amostrada que preserve exposições centrais do índice, aceitando diferenças de composição e monitoramento de tracking residual.",
+      "D": "adotar gestão ativa limitada, preservando duration agregada e usando key rate duration para explorar torções sem romper o mandato indexado."
+    },
+    "correta": "C",
+    "explicacao": "A estratégia adequada é construir carteira amostrada que preserve exposições centrais do índice, aceitando diferenças de composição sem transformar a economia de transação em fonte recorrente de retorno ativo. Em renda fixa, seguir o índice não significa apenas igualar retorno histórico ou duration agregada; a carteira precisa preservar fatores como prazo, setor, qualidade de crédito, spread e sensibilidade a torções da curva. A indexação pura pode ser ineficiente quando o índice é amplo e contém papéis pouco líquidos. Pequenas discrepâncias setoriais ou de spread deslocam a carteira para busca de retorno ativo não autorizada. A gestão ativa limitada também erra, pois key rate duration deve controlar aderência a torções, não transformar torções em aposta."
+  },
+  {
+    "id": 12,
+    "numero_original": 12,
+    "codigo": "FK22413",
+    "versao": 7,
+    "tema": "CGA - Gestão de Carteiras - Renda Fixa",
+    "objetivo": "Analisar, sob a ótica do risco e do retorno, os possíveis efeitos da utilização de derivativos em carteiras de renda fixa: contratos a termo, contratos futuros, opções, swaps e derivativos de crédito.",
+    "pergunta": "Na mesa da Atlântica Credit, a equipe prepara referência interna antes de negociar proteção via Credit Default Swap (CDS) para uma exposição corporativa mantida em carteira. A contraparte enviará cotação com margem comercial, liquidez e demais ajustes de mercado, mas o comitê pediu parâmetro simples para discutir a ordem de grandeza do prêmio. O relatório registra valor protegido de R$ 1.000, probabilidade de default de 12% no horizonte analisado e perda dado o default (LGD) de R$ 250. Nesse contexto, o percentual de referência justo para o CDS e a justificativa técnica correspondente são:",
+    "opcoes": {
+      "A": "25,0%, pois a proteção deve tomar a perda de R$ 250 em relação ao valor protegido, já que esse é o percentual de severidade assumido pelo vendedor do CDS em caso de default.",
+      "B": "3,0%, pois a estimativa deve partir da perda esperada da exposição protegida, antes dos ajustes de preço da contraparte.",
+      "C": "4,0%, pois a perda esperada de R$ 30 deve ser comparada à parcela recuperável de R$ 750, usada como base econômica líquida após a LGD.",
+      "D": "3,0%, pois a probabilidade de default transforma a LGD monetária em R$ 30, valor a ser usado como deságio de marcação da exposição antes da negociação do CDS."
+    },
+    "correta": "B",
+    "explicacao": "A estimativa simplificada da proteção via CDS parte da perda esperada da exposição protegida. A perda dado o default é R$ 250; com probabilidade de default de 12%, a perda esperada é R$ 30. Em relação ao valor protegido de R$ 1.000, o montante corresponde a 3,0%. O percentual de 25,0% trata a LGD como taxa sem ponderar a probabilidade do evento. O cálculo de 4,0% usa denominador incorreto, a parcela recuperável. A outra leitura de 3,0% erra ao associar R$ 30 a deságio de marcação, quando o parâmetro é a taxa de referência do CDS."
+  },
+  {
+    "id": 13,
+    "numero_original": 13,
+    "codigo": "FK9972",
+    "versao": 7,
+    "tema": "CGA - Avaliação de Desempenho",
+    "objetivo": "Entender e explicar a atribuição de desempenho para carteiras de renda fixa, analisando a influência de fatores externos de taxas de juros e a contribuição do processo de gestão para o desempenho da carteira.",
+    "pergunta": "A tabela retrata a atribuição de desempenho de dois fundos de renda fixa. O Fundo A objetiva retornos em excesso a partir da gestão de taxa de juros e boa seleção de ativos. O Fundo B objetiva retornos em excesso pela seleção de ativos e neutralidade em relação às taxas de juros. Dados: Fundo A: duration 0,5%, convexidade 0,2%, setor/qualidade 0,1%, seleção de ativos 0,4%, custos -0,1%. Fundo B: duration -0,2%, convexidade 0,1%, setor/qualidade 0,1%, seleção de ativos -0,3%, custos -0,1%. Os desempenhos dos fundos A e B estão de acordo com seus respectivos objetivos?",
+    "opcoes": {
+      "A": "Sim e sim.",
+      "B": "Sim e não.",
+      "C": "Não e sim.",
+      "D": "Não e não."
+    },
+    "correta": "B",
+    "explicacao": "O Fundo A apresentou resultado positivo com gestão de taxas de juros, verificado pelos retornos com duration e convexidade. Também teve resultado positivo com seleção de ativos, alcançando seus objetivos. O Fundo B, apesar de ter se mantido neutro a mudanças nas taxas de juros, pois o retorno combinado de duration e convexidade foi próximo de zero, não alcançou seu objetivo, pois apresentou retorno negativo com seleção de ativos."
+  },
+  {
+    "id": 14,
+    "numero_original": 14,
+    "codigo": "FK3126",
+    "versao": 17,
+    "tema": "CGA - Avaliação de Desempenho",
+    "objetivo": "Calcular, comparar e contrastar as seguintes medidas de avaliação de desempenho ajustadas ao risco: Alfa de Jensen, Índice de Sharpe, Índice de Treynor, Information Ratio e Índice M2.",
+    "pergunta": "O gestor decidiu converter um Índice de Sharpe de 1,5%, adotando taxa livre de risco de 6% e volatilidade de mercado de 8%. Com esses dados, pode-se afirmar que o Índice M2 dessa carteira é:",
+    "opcoes": {
+      "A": "0,06.",
+      "B": "0,12.",
+      "C": "0,18.",
+      "D": "0,29."
+    },
+    "correta": "A",
+    "explicacao": "M² = TLR + IS x risco de mercado. Assim, M² = 0,06 + 0,015 x 0,08 = 0,06 + 0,0012 = 0,0612, aproximando-se de 0,06."
+  },
+  {
+    "id": 15,
+    "numero_original": 15,
+    "codigo": "FK0100",
+    "versao": 14,
+    "tema": "CGA - Avaliação de Desempenho",
+    "objetivo": "Calcular, interpretar e contrastar as taxas de retorno time-weighted e money-weighted, bem como avaliar o efeito de contribuições externas e retiradas no cálculo dessas taxas.",
+    "pergunta": "O investidor comprou inicialmente uma ação por R$ 100,00, adquiriu mais três ações ao final do primeiro ano por R$ 89,00 cada e, ao final do segundo ano, vendeu as quatro ações por R$ 98,00 cada. Houve dividendo de R$ 1,00 por ação no fim do primeiro e do segundo ano. A taxa de retorno time-weighted (TWRR) será:",
+    "opcoes": {
+      "A": "6,35%.",
+      "B": "-2,0%.",
+      "C": "0,116%.",
+      "D": "11,24%."
+    },
+    "correta": "C",
+    "explicacao": "No ano 1, a ação comprada por R$ 100,00 valia R$ 89,00 e pagou R$ 1,00 de dividendo: retorno = (-100 + 89 + 1) / 100 = -10%. No ano 2, considerando quatro ações compradas a R$ 89,00 e vendidas a R$ 98,00, com R$ 1,00 de dividendo por ação: retorno = [(-89 x 4) + (98 x 4) + 4] / (89 x 4) = 11,24%. A TWRR é (1 - 10%) x (1 + 11,24%) - 1 = 0,90 x 1,1124 - 1 = 0,00116, ou 0,116%."
+  },
+  {
+    "id": 16,
+    "numero_original": 16,
+    "codigo": "FK15461",
+    "versao": 12,
+    "tema": "CGA - Avaliação de Desempenho",
+    "objetivo": "Entender e explicar a atribuição de desempenho para carteiras de renda fixa, analisando a influência de fatores externos de taxas de juros e a contribuição do processo de gestão para o desempenho da carteira.",
+    "pergunta": "Em uma decomposição de desempenho, foram considerados: retorno de mercado 10%, retorno do portfólio 13% e retorno do benchmark 12,50%. A atribuição de desempenho em relação à gestão ativa e ao estilo foi, respectivamente:",
+    "opcoes": {
+      "A": "2,50% e 0,50%.",
+      "B": "3% e 0,50%.",
+      "C": "0,50% e 3%.",
+      "D": "0,50% e 2,50%."
+    },
+    "correta": "D",
+    "explicacao": "O retorno da gestão ativa corresponde à diferença entre retorno do portfólio e benchmark: 13% - 12,50% = 0,50%. O retorno de estilo corresponde à diferença entre benchmark e mercado: 12,50% - 10% = 2,50%."
+  },
+  {
+    "id": 17,
+    "numero_original": 17,
+    "codigo": "FK15752",
+    "versao": 12,
+    "tema": "CGA - Avaliação de Desempenho",
+    "objetivo": "Analisar cada tipo de benchmark e identificar suas vantagens e desvantagens.",
+    "pergunta": "Renata coordenava a etapa inicial de seleção de gestores para mandato de renda variável e precisava formar um conjunto preliminar de candidatos compatíveis com o estilo exigido. Nessa etapa, ao definir o universo inicial de gestores viáveis com base no estilo, o processo deve evitar:",
+    "opcoes": {
+      "A": "excluir gestores com baixo desempenho ajustado ao risco.",
+      "B": "identificar o benchmark de referência.",
+      "C": "utilizar classificações de terceiros para encontrar gestores que possam atender ao mandato.",
+      "D": "identificar os fatores de risco por meio da análise dos retornos."
+    },
+    "correta": "A",
+    "explicacao": "Na etapa inicial, o foco é construir um universo de gestores potenciais que possam satisfazer a necessidade do portfólio, sem levar em conta o histórico de performance. Identificar benchmarks, usar classificações de terceiros e analisar retornos históricos para avaliar fatores de risco e estilo são ferramentas relevantes para definir esse universo."
+  },
+  {
+    "id": 18,
+    "numero_original": 18,
+    "codigo": "FK14332",
+    "versao": 12,
+    "tema": "CGA - Avaliação de Desempenho",
+    "objetivo": "Calcular e interpretar a taxa de retorno total de uma carteira.",
+    "pergunta": "A carteira possui três posições sem alteração durante o exercício: Ativo A, valor inicial R$ 10.000,00 e final R$ 8.500,00; Ativo B, inicial R$ 20.000,00 e final R$ 22.200,00; Ativo C, inicial R$ 15.000,00 e final R$ 18.100,00. Qual foi o retorno anualizado da carteira nesse período?",
+    "opcoes": {
+      "A": "8,44%.",
+      "B": "14,16%.",
+      "C": "15,25%.",
+      "D": "17,00%."
+    },
+    "correta": "A",
+    "explicacao": "Como não ocorreram fluxos intermediários, compara-se o valor total final e inicial da carteira. Valor inicial total = R$ 45.000,00. Valor final total = R$ 48.800,00. Rentabilidade = (48.800 - 45.000) / 45.000 = 3.800 / 45.000 = 8,44%."
+  },
+  {
+    "id": 19,
+    "numero_original": 19,
+    "codigo": "FK1523",
+    "versao": 18,
+    "tema": "CGA - Avaliação de Desempenho",
+    "objetivo": "Calcular, comparar e contrastar as seguintes medidas de avaliação de desempenho ajustadas ao risco: Alfa de Jensen, Índice de Sharpe, Índice de Treynor, Information Ratio e Índice M2.",
+    "pergunta": "Foram apresentadas afirmativas sobre indicadores de performance: I. O Information Ratio é ideal quando desejamos comparar determinado investimento a um benchmark. II. O Índice de Sharpe considera o risco total da carteira. III. O índice M2 pode ser calculado pela fórmula IS = [E(Rc) - Rf] / σ. Está correto apenas:",
+    "opcoes": {
+      "A": "I e II.",
+      "B": "II e III.",
+      "C": "I e III.",
+      "D": "III."
+    },
+    "correta": "A",
+    "explicacao": "A afirmativa I está correta, pois IR = retorno ativo / risco ativo, isto é, (Rportfólio - Rbenchmark) / desvio-padrão da diferença. A afirmativa II está correta, pois a fórmula do Índice de Sharpe usa o desvio-padrão no denominador, medida de risco total. A afirmativa III está incorreta, pois a fórmula dada é do Índice de Sharpe, não de Modigliani. A fórmula do M2 é TLR + [(RA - TLR) / σA] x σM."
+  },
+  {
+    "id": 20,
+    "numero_original": 20,
+    "codigo": "FK2050",
+    "versao": 10,
+    "tema": "CGA - Avaliação de Desempenho",
+    "objetivo": "Descrever a abordagem de atribuição micro e entender a utilização de um modelo de fatores fundamentais para a atribuição de desempenho.",
+    "pergunta": "Em atribuição setorial, considere: Ação peso fundo 0,625, peso benchmark 0,500, retorno fundo 9,85%, retorno benchmark 8,64%; Renda Fixa peso fundo 0,250, peso benchmark 0,333, retorno fundo 5,34%, retorno benchmark 5,92%; Caixa peso fundo 0,125, peso benchmark 0,167, retorno fundo 2,38%, retorno benchmark 2,47%. O retorno adicional gerado pela atribuição setorial é:",
+    "opcoes": {
+      "A": "0,485%.",
+      "B": "0,600%.",
+      "C": "0,291%.",
+      "D": "0,578%."
+    },
+    "correta": "A",
+    "explicacao": "O retorno total do benchmark é 6,705% = 0,5 x 8,64 + 0,333 x 5,92 + 0,167 x 2,47. O efeito setorial é: [(peso fundo - peso benchmark) x (retorno setorial benchmark - retorno total benchmark)]. Substituindo: [(0,625 - 0,500) x (8,64 - 6,705)] + [(0,250 - 0,333) x (5,92 - 6,705)] + [(0,125 - 0,167) x (2,47 - 6,705)] = 0,485%."
+  },
+  {
+    "id": 21,
+    "numero_original": 21,
+    "codigo": "FK18363",
+    "versao": 7,
+    "tema": "CGA - Avaliação de Desempenho",
+    "objetivo": "Explicar a possibilidade de construção de benchmarks customizados.",
+    "pergunta": "Um fundo multimercado investe predominantemente em ações de empresas com boas práticas ESG e mantém parcela relevante em crédito privado. Visando utilizar um indicador que reflita adequadamente a estratégia e a composição da carteira, o benchmark mais adequado é:",
+    "opcoes": {
+      "A": "o Ibovespa.",
+      "B": "o IMA-B 5.",
+      "C": "o Índice de Sustentabilidade Empresarial (ISE).",
+      "D": "um benchmark customizado."
+    },
+    "correta": "D",
+    "explicacao": "Como o fundo possui exposição relevante tanto a ações com foco ESG quanto a crédito privado, nenhum índice isolado representa adequadamente sua estratégia. A avaliação de desempenho deve usar benchmark customizado que combine indicadores representativos das diferentes classes de ativos presentes na carteira."
+  },
+  {
+    "id": 22,
+    "numero_original": 22,
+    "codigo": "FK10892",
+    "versao": 19,
+    "tema": "CGA - Investimentos no Exterior, Legislação e Tributação de Fundos",
+    "objetivo": "Entender e explicar o funcionamento de fundos de ações com estratégias ASG.",
+    "pergunta": "A adoção de critérios ASG em fundo de ações fundamentalista levou a equipe a rediscutir ajustes nos modelos de avaliação. Analise: I. não deve modificar valores de ativos, receitas, custos e demais itens das demonstrações financeiras. II. detém prerrogativa de alterar previsões financeiras e estimativas de fluxo de caixa. III. tende a ajustar taxas de desconto e múltiplos de avaliação. Está correto apenas:",
+    "opcoes": {
+      "A": "I e II.",
+      "B": "I e III.",
+      "C": "II e III.",
+      "D": "I, II e III."
+    },
+    "correta": "C",
+    "explicacao": "A afirmativa I está incorreta, pois o gestor deve revisar metodologias de avaliação, inclusive ajustando, se necessário, valores das demonstrações contábeis, como ativos, receitas e custos. As afirmativas II e III estão corretas, pois revisões normalmente envolvem ajustes em previsões, estimativas, múltiplos e variáveis como taxa de desconto."
+  },
+  {
+    "id": 23,
+    "numero_original": 23,
+    "codigo": "FK0885",
+    "versao": 30,
+    "tema": "CGA - Investimentos no Exterior, Legislação e Tributação de Fundos",
+    "objetivo": "Entender e explicar as regras de utilização de ativos financeiros no exterior, os ativos equivalentes, seus limites de concentração, assim como os limites por emissor e por modalidade de ativo financeiro.",
+    "pergunta": "Na constituição de nova classe aberta de FIF, o enquadramento da carteira aos limites do regulamento não precisa ocorrer integralmente no início. Considerando a fase inicial de funcionamento, o prazo máximo permitido para classes abertas é:",
+    "opcoes": {
+      "A": "180 dias, a contar da data de encerramento da distribuição.",
+      "B": "180 dias, a contar da data da primeira integralização de cotas.",
+      "C": "60 dias, a contar da data de encerramento da distribuição.",
+      "D": "60 dias, a contar da data da primeira integralização de cotas."
+    },
+    "correta": "D",
+    "explicacao": "Classes de FIF têm prazo máximo para atingir limites de concentração por emissor e modalidade de ativo: 60 dias, a contar da primeira integralização de cotas, para classes abertas; e 180 dias, a contar do encerramento da distribuição, para classes fechadas."
+  },
+  {
+    "id": 24,
+    "numero_original": 24,
+    "codigo": "FK0901",
+    "versao": 12,
+    "tema": "CGA - Investimentos no Exterior, Legislação e Tributação de Fundos",
+    "objetivo": "Entender, calcular o preço e diferenciar as características dos principais títulos privados negociados no mercado internacional.",
+    "pergunta": "Sobre Repurchase Agreements (Repos), considere: I. O vendedor recompra os títulos em data posterior. II. O valor da recompra deve ser menor que o valor original da venda. III. Equivale a uma venda à vista combinada com uma opção de compra. Está correto apenas:",
+    "opcoes": {
+      "A": "I.",
+      "B": "I e II.",
+      "C": "III.",
+      "D": "I, II e III."
+    },
+    "correta": "A",
+    "explicacao": "A afirmativa I está correta, pois Repo é acordo em que o vendedor recompra os títulos em data posterior. A II está incorreta, pois o valor de recompra deve ser maior, e não menor, que o valor da venda. A III está incorreta, pois o Repo é compromisso de recompra, não opção; equivale a venda à vista combinada com contrato a termo."
+  },
+  {
+    "id": 25,
+    "numero_original": 25,
+    "codigo": "FK14884",
+    "versao": 21,
+    "tema": "CGA - Investimentos no Exterior, Legislação e Tributação de Fundos",
+    "objetivo": "Conhecer os principais índices de sustentabilidade.",
+    "pergunta": "Sobre o Índice de Sustentabilidade Empresarial, considere: I. metodologia envolve filtros de exclusão setorial por questões de sustentabilidade. II. Nenhum setor econômico poderá ter participação superior a 15%. III. Os ativos são ponderados pelo valor de mercado do free float. Está correto apenas:",
+    "opcoes": {
+      "A": "I e II.",
+      "B": "I e III.",
+      "C": "II e III.",
+      "D": "I, II e III."
+    },
+    "correta": "C",
+    "explicacao": "A afirmativa I é incorreta, pois a metodologia do ISE não envolve filtros de exclusão setorial, sendo baseada em critérios de inclusão avaliados por questionários voluntários. A II está correta, pois se determinado setor superar 15%, o excedente será distribuído proporcionalmente aos demais ativos. A III está correta, pois ativos são ponderados pelo free float, valor de mercado dos ativos livres para negociação."
+  },
+  {
+    "id": 26,
+    "numero_original": 26,
+    "codigo": "FK13956",
+    "versao": 9,
+    "tema": "CGA - Investimentos no Exterior, Legislação e Tributação de Fundos",
+    "objetivo": "Entender e explicar o funcionamento do mercado norte-americano de títulos municipais (Municipal Bonds), suas características e seus participantes.",
+    "pergunta": "Um gestor só incorporará um corporate bond se atender pelo menos dois requisitos: YTM ≥ 5%; YTC ≥ 5%; CY ≥ 5%. O título é negociado a $104,62, cupom 5% a.a., cupom semestral, vencimento em 7 anos, call a $101,00 em 5 anos. O título:",
+    "opcoes": {
+      "A": "é elegível, pois atende a todos os três requisitos.",
+      "B": "é elegível, pois atende a dois dos três requisitos.",
+      "C": "não é elegível, pois atende somente a um requisito.",
+      "D": "não é elegível, pois não atende a nenhum requisito."
+    },
+    "correta": "D",
+    "explicacao": "Pelo roteiro na HP-12c, usando preço 104,62, valor nominal 100, cupom semestral de 2,5, 14 semestres até o vencimento, obtém-se YTM de 4,23%. Para a call, com FV 101 e 10 semestres, obtém-se YTC de 4,15%. O current yield é 5 / 104,62 = 4,78%. Como YTM, YTC e CY são inferiores a 5%, o título não atende a nenhum requisito."
+  },
+  {
+    "id": 27,
+    "numero_original": 27,
+    "codigo": "FK14147",
+    "versao": 14,
+    "tema": "CGA - Investimentos no Exterior, Legislação e Tributação de Fundos",
+    "objetivo": "Entender, calcular o preço e diferenciar as características dos principais títulos emitidos pelo Tesouro norte-americano (Treasury Bill, Treasury Notes, Treasury Bonds e Treasury Inflation-Protected Security - TIPS).",
+    "pergunta": "Sobre Treasury Inflation-Protected Securities (TIPS): I. O principal varia anualmente. II. A taxa de cupom é fixa. III. Se houver deflação, o principal é protegido e tem como trava o valor de face do título. Está correto apenas:",
+    "opcoes": {
+      "A": "I e II.",
+      "B": "II e III.",
+      "C": "III.",
+      "D": "I, II e III."
+    },
+    "correta": "B",
+    "explicacao": "A afirmativa I está incorreta, pois o principal é corrigido diariamente com base na taxa diária do CPI-U. A II está correta, pois os TIPS pagam cupons a taxa fixa. A III está correta, pois no vencimento paga-se o principal corrigido pelo CPI-U ou o valor original, o que for maior."
+  },
+  {
+    "id": 28,
+    "numero_original": 28,
+    "codigo": "FK12704",
+    "versao": 21,
+    "tema": "CGA - Investimentos no Exterior, Legislação e Tributação de Fundos",
+    "objetivo": "Conhecer e explicar o cálculo da taxa de administração e de gestão, sua base de cálculo e formas de cobrança. Explicar e calcular o impacto dessas taxas na rentabilidade do cliente.",
+    "pergunta": "Nas classes abertas de fundos de investimentos, as taxas de administração e de performance devem ser provisionadas, respectivamente:",
+    "opcoes": {
+      "A": "ambas por dias corridos.",
+      "B": "por dias corridos e por dias úteis.",
+      "C": "por dias úteis e por dias corridos.",
+      "D": "ambas por dias úteis."
+    },
+    "correta": "D",
+    "explicacao": "Nas classes abertas, as taxas de administração e de performance devem ser provisionadas por dia útil, sempre como despesa da classe e apropriadas conforme estabelecido no regulamento."
+  },
+  {
+    "id": 29,
+    "numero_original": 29,
+    "codigo": "FK11657",
+    "versao": 27,
+    "tema": "CGA - Investimentos no Exterior, Legislação e Tributação de Fundos",
+    "objetivo": "Comparar e distinguir as classes abertas e fechadas.",
+    "pergunta": "Sobre classes de fundos de investimento, é correto afirmar que a classe:",
+    "opcoes": {
+      "A": "aberta permite o resgate das cotas somente ao término do fundo ou em sua liquidação.",
+      "B": "exclusiva tem que ser fechada.",
+      "C": "fechada só permite o resgate das cotas ao término do fundo.",
+      "D": "restrita é destinada exclusivamente a investidores profissionais."
+    },
+    "correta": "C",
+    "explicacao": "As cotas de classes fechadas só podem ser resgatadas ao término do prazo de duração do fundo previsto no regulamento ou em sua liquidação. Nas classes abertas, investidores podem solicitar resgate a qualquer momento. Classe exclusiva pode ser aberta ou fechada. Classe restrita é destinada exclusivamente a investidores qualificados e profissionais."
+  },
+  {
+    "id": 30,
+    "numero_original": 30,
+    "codigo": "FK18828",
+    "versao": 12,
+    "tema": "CGA - Investimentos no Exterior, Legislação e Tributação de Fundos",
+    "objetivo": "Entender e explicar o funcionamento de fundos de ações com estratégias ASG.",
+    "pergunta": "Um gestor pretende estruturar fundo de ações ESG excluindo sistematicamente empresas de petróleo, gás e mineração, independentemente de perspectivas financeiras. Essa abordagem é:",
+    "opcoes": {
+      "A": "integração de fatores ESG, incorporando aspectos ambientais, sociais e de governança à análise financeira.",
+      "B": "engajamento ativo, no qual o gestor influencia práticas via voto.",
+      "C": "screening negativo, com exclusão de setores ou empresas com base em critérios pré-definidos.",
+      "D": "investimento de impacto, voltado exclusivamente para impacto socioambiental mensurável."
+    },
+    "correta": "C",
+    "explicacao": "A abordagem consiste na exclusão deliberada de setores específicos com base em critérios ESG, conhecida como screening negativo ou filtro de exclusão. Integração ESG não implica exclusão automática; engajamento pressupõe manutenção do investimento para influenciar empresa; investimento de impacto busca impacto positivo mensurável."
+  },
+  {
+    "id": 31,
+    "numero_original": 31,
+    "codigo": "FK22312",
+    "versao": 5,
+    "tema": "CGA - Investimentos no Exterior, Legislação e Tributação de Fundos",
+    "objetivo": "Descrever as Treasury STRIPS, explicar seu processo de emissão e negociação e distinguir entre strips de cupom e de principal.",
+    "pergunta": "O Instituto Jatobá administra recursos para desembolso único de US$ 5 milhões em dez anos. Avalia Treasury Note de dez anos, principal US$ 1.000.000 e cupom anual de 5%. A recomendação deve indicar:",
+    "opcoes": {
+      "A": "priorizar a Treasury Note inteira; a conversão gera 20 instrumentos de cupom e 1 de principal.",
+      "B": "priorizar o strip de principal; a conversão gera 20 instrumentos de cupom e 1 de principal, e a ausência de cupons intermediários reduz reinvestimento, sem afastar risco de preço.",
+      "C": "priorizar o strip de principal; a conversão gera 10 instrumentos de cupom e 1 de principal.",
+      "D": "priorizar a Treasury Note inteira; a conversão gera 10 instrumentos de cupom e 1 de principal."
+    },
+    "correta": "B",
+    "explicacao": "Como o passivo é único e não há pagamentos intermediários, a recomendação adequada é priorizar o strip de principal com vencimento alinhado ao desembolso. Uma Treasury Note de dez anos paga juros semestrais, então sua conversão em STRIPS gera 20 instrumentos de cupom e 1 de principal. O strip de principal evita cupons antes do passivo e reduz reinvestimento, mas não elimina risco de preço pela marcação a mercado até o vencimento."
+  },
+  {
+    "id": 32,
+    "numero_original": 32,
+    "codigo": "FK22415",
+    "versao": 7,
+    "tema": "CGA - Investimentos no Exterior, Legislação e Tributação de Fundos",
+    "objetivo": "Conhecer e explicar o processo de marcação a mercado no cálculo da cota de fundos de investimento assim como o efeito da não marcação a mercado quando a decisão do investidor for por manter os ativos até o vencimento.",
+    "pergunta": "Na validação da cota de classe aberta restrita a qualificados e profissionais, há perda relevante em títulos prefixados após abertura da curva. O gestor não pretende vender antes do vencimento, mas há pedido de resgate e não há solicitação formal de todos os cotistas com declaração de capacidade financeira. A orientação técnica é:",
+    "opcoes": {
+      "A": "precificar os títulos pela curva, porque a classe é restrita e o gestor registrou intenção de carregar.",
+      "B": "manter a marcação a mercado, pois a restrição da classe e a intenção de carregamento não bastam para afastar a variação já observada.",
+      "C": "manter a marcação a mercado, por tratar o resgate em conversão como critério determinante.",
+      "D": "precificar pela curva, porque perfil institucional e baixa rotatividade demonstram compatibilidade."
+    },
+    "correta": "B",
+    "explicacao": "A marcação a mercado deve prevalecer porque a classificação como mantido até o vencimento depende de condições cumulativas, não apenas da natureza restrita, intenção do gestor ou perfil institucional. A marcação pela curva exige intenção de carregamento, solicitação formal dos cotistas e declaração de capacidade financeira para manter até o vencimento. Sem isso, retirar da cota a perda de mercado pode transferir riqueza entre cotistas."
+  },
+  {
+    "id": 33,
+    "numero_original": 33,
+    "codigo": "FK22418",
+    "versao": 7,
+    "tema": "CGA - Investimentos no Exterior, Legislação e Tributação de Fundos",
+    "objetivo": "Entender e explicar o “come-cotas” e suas alíquotas.",
+    "pergunta": "Classe de cotas de fundo destinada ao público geral é tipificada como Renda Fixa, não usa sufixo Curto Prazo e tem prazo médio de carteira de 310 dias. Para come-cotas, a leitura compatível é:",
+    "opcoes": {
+      "A": "parametrizar pela alíquota de 15%, pois não usa sufixo Curto Prazo.",
+      "B": "parametrizar pela alíquota de 20%, sem tomar a ausência do sufixo Curto Prazo como critério bastante para o recolhimento semestral.",
+      "C": "parametrizar pela alíquota de 15%, deixando complemento para o resgate.",
+      "D": "parametrizar pela alíquota de 20% somente se também atender aos requisitos CVM de curto prazo."
+    },
+    "correta": "B",
+    "explicacao": "O come-cotas deve ser parametrizado pela alíquota de 20% porque, para fins fiscais, o enquadramento como curto ou longo prazo decorre do prazo médio da carteira. Com prazo médio de 310 dias, permanece no regime fiscal de curto prazo, ainda que não use sufixo Curto Prazo na denominação. O sufixo pertence à lógica de tipificação CVM, não à classificação fiscal."
+  },
+  {
+    "id": 34,
+    "numero_original": 34,
+    "codigo": "FK22419",
+    "versao": 7,
+    "tema": "CGA - Investimentos no Exterior, Legislação e Tributação de Fundos",
+    "objetivo": "Conhecer as regras de composição das carteiras dos Fundos de Investimento Financeiro (FIF) segundo a tipificação da CVM e seus riscos: Fundo de Renda Fixa, Fundo de Ações, Fundo Cambial, Fundo Multimercado e utilização de sufixos para cada classe.",
+    "pergunta": "Instituição analisa classe Renda Fixa voltada a debêntures incentivadas, CRI e cotas de FIDC de infraestrutura, superando 50% do patrimônio em emissores privados. A denominação contém Investimento em Infraestrutura, mas o material destaca isenção para pessoas físicas sem detalhar condições e riscos. A providência compatível é:",
+    "opcoes": {
+      "A": "acrescentar sufixo Crédito Privado, preservar Infraestrutura e manter destaque tributário.",
+      "B": "manter denominação vinculada à infraestrutura, dispensar sufixo Crédito Privado e revisar material de divulgação.",
+      "C": "tratar como Renda Fixa - Crédito Privado e dispensar regime de infraestrutura na denominação.",
+      "D": "manter denominação de infraestrutura e reservar riscos ao regulamento."
+    },
+    "correta": "B",
+    "explicacao": "O FI-Infra é dispensado do sufixo Crédito Privado, mas deve manter denominação vinculada à infraestrutura. Essa dispensa não elimina risco de crédito. Por isso, o material de divulgação deve ser revisado para que o destaque tributário venha acompanhado das condições de manutenção do benefício e dos riscos relevantes da estratégia, como concentração e iliquidez."
+  },
+  {
+    "id": 35,
+    "numero_original": 35,
+    "codigo": "FK7865",
+    "versao": 14,
+    "tema": "CGA - Gestão de Carteiras Renda Variável",
+    "objetivo": "Conhecer as finalidades e diferenciar os principais indicadores de reversão.",
+    "pergunta": "Sobre IFR: I. É indicador atrasado ou coincidente, nunca antecedente. II. Resulta da divisão entre médias de variações de alta e de baixa. III. Quanto maior a força dos vendedores, mais se aproxima de 0%. IV. No gráfico do IFR é possível traçar linhas de tendência. Está correto apenas:",
+    "opcoes": {
+      "A": "I, II e III.",
+      "B": "I, II e IV.",
+      "C": "II, III e IV.",
+      "D": "I, II, III e IV."
+    },
+    "correta": "C",
+    "explicacao": "A I está incorreta, pois o IFR pode ser indicador antecedente ou coincidente, mas nunca atrasado. A II está correta, pois o IFR representa a relação entre médias de variações de alta e baixa. A III está correta, pois maior força vendedora aproxima o índice de 0%. A IV está correta, pois o gráfico do IFR pode ser analisado como gráfico de preços, com topos, fundos, suportes, resistências, linhas de tendência e figuras gráficas."
+  },
+  {
+    "id": 36,
+    "numero_original": 36,
+    "codigo": "FK14368",
+    "versao": 9,
+    "tema": "CGA - Gestão de Carteiras Renda Variável",
+    "objetivo": "Conhecer as finalidades e diferenciar os principais indicadores de reversão.",
+    "pergunta": "Na revisão do IFR, conclui-se que o Índice de Força Relativa:",
+    "opcoes": {
+      "A": "consegue confirmar, com boa precisão, a continuidade de movimentos no mercado.",
+      "B": "abaixo de 70 reflete topo de mercado e acima de 30 tendência de queda será revertida.",
+      "C": "é um índice de tendência bastante utilizado por analistas gráficos.",
+      "D": "acima de 70 reflete topo de mercado sendo atingido e abaixo de 30 uma tendência de queda está para ser revertida."
+    },
+    "correta": "D",
+    "explicacao": "O IFR não é índice de tendência, mas de momentum. Delimita regiões de sobrecompra e sobrevenda, com níveis usuais de 70% e 30%. Abaixo de 30, está sobrevendido, com força relativa dos vendedores predominante e maior chance de próximo movimento de alta. Acima de 70, está sobrecomprado, com força compradora predominante e maior probabilidade de próximo movimento de queda."
+  },
+  {
+    "id": 37,
+    "numero_original": 37,
+    "codigo": "FK2202",
+    "versao": 15,
+    "tema": "CGA - Gestão de Carteiras Renda Variável",
+    "objetivo": "Explicar a separação de alfa e beta como um modelo de gestão ativa e a possibilidade de portabilidade do alfa, e descrever a prática de cherry-picking e sua associação a condutas fraudulentas de gestão.",
+    "pergunta": "Considerando separação entre beta de mercado e alfa em mercado eficiente, um gestor pode realizar:",
+    "opcoes": {
+      "A": "Carteira diversificada.",
+      "B": "Long/short com viés vendido.",
+      "C": "Comprar um ETF de índice Bovespa e long/short sem risco sistemático.",
+      "D": "Comprar uma carteira e vender o mesmo financeiro de índice futuro."
+    },
+    "correta": "C",
+    "explicacao": "A separação de alfa e beta é adequada em mercados eficientes, nos quais é difícil gerar alfa por gestão ativa. O investidor obtém beta por meio de fundo de índice de baixo custo, como ETF que replica o Ibovespa, e adiciona alfa separadamente por estratégia long/short sem risco sistemático."
+  },
+  {
+    "id": 38,
+    "numero_original": 38,
+    "codigo": "FK18371",
+    "versao": 13,
+    "tema": "CGA - Gestão de Carteiras Renda Variável",
+    "objetivo": "Definir e contrastar as estratégias de gestão ativas, passivas e agnósticas em relação a um benchmark, distingui-las com base no retorno ativo esperado e no risco de tracking error por meio do Information Ratio, e recomendar uma estratégia de gestão.",
+    "pergunta": "A equipe de seleção de ações passa a considerar balanço patrimonial, demonstração de resultados, histórico de lucros e prejuízos e indicadores econômico-financeiros antes da alocação. Nesse caso, o gestor provavelmente adota gestão:",
+    "opcoes": {
+      "A": "ativa.",
+      "B": "passiva.",
+      "C": "contábil.",
+      "D": "técnica."
+    },
+    "correta": "A",
+    "explicacao": "A gestão ativa caracteriza-se pela análise e seleção de ativos com objetivo de superar benchmark. É comum usar informações fundamentalistas como balanço patrimonial, DRE, lucros e prejuízos. A gestão passiva busca replicar índice; contábil não é estilo de gestão; análise técnica se baseia em preços e volumes, não em demonstrações financeiras."
+  },
+  {
+    "id": 39,
+    "numero_original": 39,
+    "codigo": "FK18372",
+    "versao": 7,
+    "tema": "CGA - Gestão de Carteiras Renda Variável",
+    "objetivo": "Analisar, comparar e contrastar as estratégias de gestão long/short e market neutral.",
+    "pergunta": "Um gestor estrutura estratégia sem posição direcional, com posições compradas e vendidas em ativos correlacionados, buscando resultado pela diferença de desempenho entre ativos, não pelo movimento geral do mercado. A gestão é:",
+    "opcoes": {
+      "A": "neutra.",
+      "B": "agnóstica.",
+      "C": "passiva.",
+      "D": "ativa."
+    },
+    "correta": "A",
+    "explicacao": "A gestão neutra busca reduzir ou eliminar exposição direcional ao mercado, estruturando posições compradas e vendidas de modo que o resultado dependa principalmente da diferença de desempenho entre ativos. Gestão passiva replica índice; ativa busca superar benchmark; agnóstica é abordagem flexível sem viés pré-definido."
+  },
+  {
+    "id": 40,
+    "numero_original": 40,
+    "codigo": "FK22355",
+    "versao": 5,
+    "tema": "CGA - Gestão de Carteiras Renda Variável",
+    "objetivo": "Analisar, comparar e contrastar as estratégias de gestão long/short e market neutral.",
+    "pergunta": "Uma carteira compra R$ 100 milhões da ação A, beta 0,80, e vende a descoberto R$ 80 milhões da ação B, beta 1,00. A leitura técnica deve:",
+    "opcoes": {
+      "A": "classificar como long/short com viés comprado, usando saldo líquido de R$ 20 milhões.",
+      "B": "classificar como long/short com viés comprado, pois exposição bruta e margem permanecem elevadas.",
+      "C": "classificar como market neutral, pois saldo financeiro líquido positivo é pequeno frente à exposição bruta.",
+      "D": "classificar como market neutral, pois as exposições beta da perna comprada e vendida se compensam, sem eliminar alavancagem e risco específico."
+    },
+    "correta": "D",
+    "explicacao": "O critério decisivo é a sensibilidade ao beta de mercado, não saldo nocional líquido ou exposição bruta. A compra de R$ 100 milhões com beta 0,80 gera exposição de R$ 80 milhões ao risco de mercado; a venda de R$ 80 milhões com beta 1,00 gera exposição oposta de R$ 80 milhões. A estratégia é long/short e pode ser classificada como market neutral pela compensação beta. Isso não elimina alavancagem, margem, risco específico ou risco de ruptura da correlação."
+  },
+  {
+    "id": 41,
+    "numero_original": 41,
+    "codigo": "FK14647",
+    "versao": 19,
+    "tema": "CGA - Gestão de Investimentos e de Risco",
+    "objetivo": "Definir e explicar os riscos associados a investimentos em derivativos: riscos de taxa de juros, de base, de financiamento, de crédito, liquidez e de volatilidade.",
+    "pergunta": "O risco de base em operações de hedge com futuros de commodities pode ser entendido como:",
+    "opcoes": {
+      "A": "variação dos preços dos mercados físico e futuro.",
+      "B": "baixa dos preços à vista causada pela demanda por commodities.",
+      "C": "queda brusca dos preços das commodities por quebra de safra.",
+      "D": "variação dos preços dos contratos futuros das commodities."
+    },
+    "correta": "A",
+    "explicacao": "Base é a diferença entre o preço de uma commodity no mercado físico e sua cotação no mercado futuro. A base pode ser negativa ou positiva e variar ao longo do contrato, criando risco de base. Essa variação pode afetar o resultado final do hedge. Portanto, risco de base é variação não esperada entre mercados físico e futuro."
+  },
+  {
+    "id": 42,
+    "numero_original": 42,
+    "codigo": "FK14331",
+    "versao": 17,
+    "tema": "CGA - Gestão de Investimentos e de Risco",
+    "objetivo": "Definir, interpretar e calcular o VaR de uma carteira e de seus componentes individuais.",
+    "pergunta": "Carteira com um único ativo no valor de R$ 3 milhões, desvio-padrão diário de 5%, horizonte de 5 dias úteis e confiança de 99%. Calcule o VaR:",
+    "opcoes": {
+      "A": "R$ 134.720,00.",
+      "B": "R$ 177.340,00.",
+      "C": "R$ 657.400,26.",
+      "D": "R$ 865.358,31."
+    },
+    "correta": "D",
+    "explicacao": "VaR = valor da carteira x (fator de confiança x desvio-padrão diário x raiz do número de dias úteis). Para confiança de 99%, usa-se nível de significância de 1% e fator de confiança de 2,58. VaR = R$ 3.000.000 x (2,58 x 0,05 x √5) = R$ 865.358,31."
+  },
+  {
+    "id": 43,
+    "numero_original": 43,
+    "codigo": "FK12839",
+    "versao": 29,
+    "tema": "CGA - Gestão de Investimentos e de Risco",
+    "objetivo": "Entender, explicar, calcular e interpretar os conceitos de Duration de Macaulay e Duration Modificada, relacionando-os com outras variáveis de mercado visando fazer uma recomendação de investimento.",
+    "pergunta": "Considere títulos: A, maturity 14 anos, cupom 4%, YTM 6%; B, maturity 14 anos, cupom 5%, YTM 6%; C, maturity 15 anos, cupom 4%, YTM 5%; D, maturity 15 anos, cupom 5%, YTM 5%. Qual apresenta menor risco em função de variações nas taxas de juros?",
+    "opcoes": {
+      "A": "A.",
+      "B": "B.",
+      "C": "C.",
+      "D": "D."
+    },
+    "correta": "B",
+    "explicacao": "O risco de variação nas taxas de juros é medido pela duration, que tem relação direta com maturidade e inversa com taxa de cupom e YTM. O título B apresenta menor duration por combinar menor maturidade com maiores taxa de cupom e rendimento (YTM)."
+  },
+  {
+    "id": 44,
+    "numero_original": 44,
+    "codigo": "FK13135",
+    "versao": 14,
+    "tema": "CGA - Gestão de Investimentos e de Risco",
+    "objetivo": "Calcular valores de carteiras de renda fixa e renda variável antes e após o rebalanceamento, utilizando os três métodos.",
+    "pergunta": "Um investidor quer preservar patrimônio mínimo, mantendo exposição a renda variável. Portfólio total de R$ 150.000,00, metade em ações e metade em ativos livres de risco. Coeficiente de inclinação da regra de rebalanceamento 1,5. O valor mínimo da carteira será:",
+    "opcoes": {
+      "A": "R$ 50.000,00.",
+      "B": "R$ 75.000,00.",
+      "C": "R$ 100.000,00.",
+      "D": "R$ 225.000,00."
+    },
+    "correta": "C",
+    "explicacao": "Na estratégia CPPI, o piso é obtido por: Valor de Ações = m x (Total de Ativos - Piso). Assim, R$ 75.000,00 = 1,5 x (R$ 150.000,00 - Piso). R$ 225.000,00 - 1,5 x Piso = R$ 75.000,00; 1,5 x Piso = R$ 150.000,00; Piso = R$ 100.000,00."
+  },
+  {
+    "id": 45,
+    "numero_original": 45,
+    "codigo": "FK18829",
+    "versao": 13,
+    "tema": "CGA - Gestão de Investimentos e de Risco",
+    "objetivo": "Distinguir as estratégias de rebalanceamento lineares, côncavas e convexas.",
+    "pergunta": "Um investidor possui R$ 100.000.000,00 para investir em renda variável e adota CPPI com piso de R$ 80.000.000,00 e multiplicador 5. No primeiro rebalanceamento, a parcela em renda variável caiu 5%. Nesse caso, deverá:",
+    "opcoes": {
+      "A": "comprar R$ 15.000.000,00 em renda fixa e vender R$ 15.000.000,00 em renda variável.",
+      "B": "comprar R$ 20.000.000,00 em renda fixa e vender R$ 20.000.000,00 em renda variável.",
+      "C": "comprar R$ 25.000.000,00 em renda fixa e vender R$ 25.000.000,00 em renda variável.",
+      "D": "comprar R$ 5.000.000,00 em renda fixa e vender R$ 5.000.000,00 em renda variável."
+    },
+    "correta": "A",
+    "explicacao": "Valor investido em ações = m x (TA - F). Inicialmente: 5 x (100.000 - 80.000) = 100.000. Se o mercado acionário caiu 5%, a posição de ações passa para R$ 95.000. Após o rebalanceamento: valor em ações = 5 x (95.000 - 80.000) = 75.000. Como o piso é R$ 80.000, o restante, R$ 15.000, será investido em renda fixa. Portanto, deverá vender R$ 15.000.000 em renda variável e comprar R$ 15.000.000 em renda fixa."
+  }
+]

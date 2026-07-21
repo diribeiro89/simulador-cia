@@ -1,0 +1,750 @@
+[
+  {
+    "id": 1,
+    "numero_original": 1,
+    "codigo": "FK8163",
+    "versao": 9,
+    "tema": "CGA - Investimentos no Exterior, Legislação e Tributação de Fundos",
+    "objetivo": "Entender, calcular o preço e diferenciar as características dos principais títulos emitidos pelo Tesouro norte-americano (Treasury Bill, Treasury Notes, Treasury Bonds e Treasury Inflation-Protected Security - TIPS).",
+    "pergunta": "Sobre os títulos norte-americanos indexados à inflação, os TIPS, são feitas as seguintes afirmativas:\n\nI. Pagam cupom anual.\n\nII. O cupom é fixo e o valor do principal do título varia com o passar do tempo.\n\nIII. Se entre dois pagamentos de cupom houver deflação no índice de inflação CPI, o título protegerá o investidor. O título mantém o valor de principal do último pagamento de cupom.\n\nSão corretas apenas as afirmativas:",
+    "opcoes": {
+      "A": "II.",
+      "B": "I e II.",
+      "C": "I e III.",
+      "D": "II e III."
+    },
+    "correta": "A",
+    "explicacao": "A afirmativa I é incorreta, pois os TIPS pagam cupons semestrais. A afirmativa II está correta, pois os TIPS são títulos do Tesouro americano que remuneram os investidores pela variação do CPI mais uma taxa de cupom prefixada, sendo que o valor do principal, sobre o qual incide a taxa de cupom, modifica-se ao longo do tempo, acumulando o efeito da inflação. A afirmativa III está incorreta, pois, se em algum semestre houver deflação, o principal é ajustado para baixo e os pagamentos de cupom serão menores do que seriam se não ocorresse deflação."
+  },
+  {
+    "id": 2,
+    "numero_original": 2,
+    "codigo": "FK0289",
+    "versao": 30,
+    "tema": "CGA - Investimentos no Exterior, Legislação e Tributação de Fundos",
+    "objetivo": "Conhecer as regras de composição das carteiras dos Fundos de Investimento Financeiro (FIF) segundo a tipificação da CVM e seus riscos: Fundo de Renda Fixa, Fundo de Ações, Fundo Cambial, Fundo Multimercado e utilização de sufixos para cada classe.",
+    "pergunta": "Durante um treinamento interno sobre nomenclatura, sufixos e regras acessórias das classes de Fundo de Investimento Financeiro, a instrutora chamou atenção para uma confusão recorrente entre a possibilidade de cobrar taxa de performance e a mera existência de um parâmetro de referência para a carteira. Assim, a taxa de performance é vedada nas classes tipificadas como:",
+    "opcoes": {
+      "A": "renda fixa curto prazo e referenciada.",
+      "B": "renda fixa curto prazo, referenciada e de ações.",
+      "C": "renda fixa curto prazo e multimercado.",
+      "D": "renda fixa longo prazo e de ações."
+    },
+    "correta": "A",
+    "explicacao": "É vedada a cobrança de taxa de performance nas classes de FIF tipificadas como renda fixa, salvo quando se tratar de classe destinada exclusivamente a investidor qualificado, classe de longo prazo e classe tipificada como Renda Fixa - Dívida Externa. Para estas, assim como para classes de ações e multimercado, a cobrança pode ser realizada, desde que prevista no respectivo regulamento."
+  },
+  {
+    "id": 3,
+    "numero_original": 3,
+    "codigo": "FK13757",
+    "versao": 18,
+    "tema": "CGA - Investimentos no Exterior, Legislação e Tributação de Fundos",
+    "objetivo": "Entender e explicar os conceitos de yield to maturity, current yield e coupon rate, bem como calcular e interpretar tais valores.",
+    "pergunta": "Calcular corretamente o Yield to Maturity de um título do Tesouro norte-americano foi o exercício proposto em um treinamento. O título vencia em dez anos, era negociado ao preço flat de $112 e pagava cupom anual de 9%, com desembolsos semestrais. Considerando essas informações, o Yield to Maturity aproximado desse título é:",
+    "opcoes": {
+      "A": "3,64%.",
+      "B": "7,11%.",
+      "C": "7,29%.",
+      "D": "7,41%."
+    },
+    "correta": "C",
+    "explicacao": "Como o título é negociado ao preço flat, os juros acumulados desde o último pagamento não são considerados. Na HP-12c: 112 [CHS] [PV]; 100 [FV]; 100 [ENTER] 9 [%] 2 [/] [PMT], inserindo cupom semestral de $4,50; 10 [ENTER] 2 [x] [n], inserindo 20 pagamentos semestrais; [i] 2 [x], calculando a taxa semestral de 3,64% e anualizando proporcionalmente. O YTM aproximado é 7,29%."
+  },
+  {
+    "id": 4,
+    "numero_original": 4,
+    "codigo": "FK14098",
+    "versao": 9,
+    "tema": "CGA - Investimentos no Exterior, Legislação e Tributação de Fundos",
+    "objetivo": "Calcular o rendimento líquido de impostos de um título tributável (after-tax yield), assim como o rendimento tributável equivalente ao de um título isento de impostos (tax-equivalent yield) no mercado norte-americano.",
+    "pergunta": "A análise de um título estrangeiro exigia verificar se o papel atendia ao retorno mínimo. O ativo oferecia cupom de 9% ao ano, pagamento semestral, prazo total de 10 anos e calendário de call em 7 anos por $103, em 8 anos por $102 e em 9 anos por $101. O título estava cotado a $112 e o fundo exigia yield to worst mínimo de 7,10%. O gestor:",
+    "opcoes": {
+      "A": "não deve investir no título pois seu YTW é de 7%.",
+      "B": "deve investir no título pois seu YTM é de 7,29%.",
+      "C": "deve investir no título pois seu YTW é de 7,13%.",
+      "D": "não deve investir no título pois seu YTM é de 7,29%."
+    },
+    "correta": "C",
+    "explicacao": "Deve-se calcular o YTM e os yields to call de cada data. O YTM é 7,29%. O YTC de 7 anos é 7,13%, o YTC de 8 anos é 7,19% e o YTC de 9 anos é 7,24%. Como o yield to worst corresponde ao menor rendimento entre YTM e YTCs, o YTW é 7,13%, superior ao mínimo exigido de 7,10%. Portanto, o gestor deve investir no título."
+  },
+  {
+    "id": 5,
+    "numero_original": 5,
+    "codigo": "FK12281",
+    "versao": 14,
+    "tema": "CGA - Investimentos no Exterior, Legislação e Tributação de Fundos",
+    "objetivo": "Entender, calcular o preço e diferenciar as características dos principais títulos privados negociados no mercado internacional.",
+    "pergunta": "Sobre operação repo, considere as seguintes afirmativas:\n\nI. O vendedor usa os títulos como garantia do empréstimo a uma taxa prefixada.\n\nII. Representa a venda de títulos com o compromisso de recompra futura.\n\nIII. O valor de compra deve ser, obrigatoriamente, maior do que o valor efetivo da venda.\n\nEstá correto o que se afirma em:",
+    "opcoes": {
+      "A": "I e II.",
+      "B": "I e III.",
+      "C": "II e III.",
+      "D": "I, II e III."
+    },
+    "correta": "C",
+    "explicacao": "A afirmativa I está incorreta, pois em uma repurchase agreement o comprador usa os títulos como garantia do empréstimo a uma taxa prefixada. A afirmativa II está correta, pois repo é venda de títulos com dever de recompra futura pelo vendedor. A afirmativa III está correta, pois o valor de recompra deve ser maior que o valor original da venda; a diferença de preços, taxa repo, é o retorno devido ao comprador, ou credor."
+  },
+  {
+    "id": 6,
+    "numero_original": 6,
+    "codigo": "FK11659",
+    "versao": 24,
+    "tema": "CGA - Investimentos no Exterior, Legislação e Tributação de Fundos",
+    "objetivo": "Entender e explicar as características das cotas das classes restritas, exclusivas e previdenciárias, bem como sua adequação na gestão de patrimônio.",
+    "pergunta": "Foram apresentadas as seguintes afirmativas sobre as características das classes de fundos de investimento:\n\nI. A classe exclusiva deve ser fechada.\n\nII. A classe restrita é destinada a investidores qualificados.\n\nIII. A classe fechada não admite o resgate de cotas.\n\nEstá correto o que se afirma apenas em:",
+    "opcoes": {
+      "A": "I.",
+      "B": "II e III.",
+      "C": "I e II.",
+      "D": "I, II e III."
+    },
+    "correta": "B",
+    "explicacao": "A afirmativa I está incorreta, pois a classe exclusiva pode ser constituída no regime aberto ou fechado. A afirmativa II está correta, pois a classe restrita é destinada à aplicação de recursos de investidores qualificados e profissionais. A afirmativa III está correta, pois a classe fechada é aquela cujo regulamento não admite o resgate de cotas."
+  },
+  {
+    "id": 7,
+    "numero_original": 7,
+    "codigo": "FK11867",
+    "versao": 28,
+    "tema": "CGA - Investimentos no Exterior, Legislação e Tributação de Fundos",
+    "objetivo": "Conhecer as regras de composição das carteiras dos Fundos de Investimento Financeiro (FIF) segundo a tipificação da CVM e seus riscos: Fundo de Renda Fixa, Fundo de Ações, Fundo Cambial, Fundo Multimercado e utilização de sufixos para cada classe.",
+    "pergunta": "Ao estruturar uma nova classe voltada a investidores que desejam acompanhar de perto o comportamento do CDI, a área de produtos discutiu as condições para que a tipificação Renda Fixa - Referenciada DI seja adotada. Para verificar se a política de investimentos está compatível, é necessário identificar o percentual mínimo do patrimônio que deve ser aplicado em títulos ou operações que acompanhem o referencial:",
+    "opcoes": {
+      "A": "95%.",
+      "B": "90%.",
+      "C": "67%.",
+      "D": "51%."
+    },
+    "correta": "A",
+    "explicacao": "A classe de FIF tipificada como Renda Fixa, seguida do sufixo Referenciada DI, deve assegurar que ao menos 95% do patrimônio líquido esteja investido em ativos que acompanhem, direta ou indiretamente, o índice de referência que dá nome à classe."
+  },
+  {
+    "id": 8,
+    "numero_original": 8,
+    "codigo": "FK11873",
+    "versao": 28,
+    "tema": "CGA - Investimentos no Exterior, Legislação e Tributação de Fundos",
+    "objetivo": "Conhecer as regras de composição das carteiras dos Fundos de Investimento Financeiro (FIF) segundo a tipificação da CVM e seus riscos: Fundo de Renda Fixa, Fundo de Ações, Fundo Cambial, Fundo Multimercado e utilização de sufixos para cada classe.",
+    "pergunta": "Durante a atualização de guia interno, a plataforma precisava padronizar orientações sobre classes Renda Fixa - Simples. As classes de cotas de FIF tipificadas como Renda Fixa - Simples:",
+    "opcoes": {
+      "A": "têm no mínimo 80% do patrimônio líquido em títulos públicos federais ou títulos de renda fixa de instituições financeiras de baixo risco.",
+      "B": "requerem análise de suitability dos investidores.",
+      "C": "não possuem limite de concentração de 50% em papéis privados.",
+      "D": "são vedadas de realizar investimentos no exterior."
+    },
+    "correta": "D",
+    "explicacao": "É vedado às classes Renda Fixa - Simples realizar investimentos no exterior. Também não é permitido concentrar mais de 50% do patrimônio líquido em créditos de emissores privados. Essas classes devem ter, no mínimo, 95% do patrimônio líquido em títulos da dívida pública federal ou títulos de renda fixa de emissão ou coobrigação de instituições financeiras com baixo risco. Seus investidores são dispensados de termo de adesão e análise de suitability."
+  },
+  {
+    "id": 9,
+    "numero_original": 9,
+    "codigo": "FK11903",
+    "versao": 28,
+    "tema": "CGA - Investimentos no Exterior, Legislação e Tributação de Fundos",
+    "objetivo": "Entender e explicar as regras de utilização de ativos financeiros no exterior, os ativos equivalentes, seus limites de concentração, assim como os limites por emissor e por modalidade de ativo financeiro.",
+    "pergunta": "Em relação aos limites de concentração por emissor para aplicações de uma classe de cotas de FIF, deve ser observado o limite máximo sobre o patrimônio líquido de:",
+    "opcoes": {
+      "A": "95% quando o emissor for a União Federal.",
+      "B": "50% quando o emissor for instituição financeira.",
+      "C": "15% quando o emissor for pessoa natural.",
+      "D": "não há limite quando o emissor for fundos de investimento."
+    },
+    "correta": "D",
+    "explicacao": "Segundo as normas vigentes, não há limite de concentração por emissor quando este for a União Federal ou um fundo de investimento. O limite é de 20% do patrimônio líquido quando se tratar de títulos emitidos por instituições financeiras autorizadas pelo Bacen e de 5% quando o emissor for pessoa natural."
+  },
+  {
+    "id": 10,
+    "numero_original": 10,
+    "codigo": "FK11908",
+    "versao": 31,
+    "tema": "CGA - Investimentos no Exterior, Legislação e Tributação de Fundos",
+    "objetivo": "Entender e explicar as regras de utilização de ativos financeiros no exterior, os ativos equivalentes, seus limites de concentração, assim como os limites por emissor e por modalidade de ativo financeiro.",
+    "pergunta": "Em uma revisão de política de investimentos, a equipe comparou os limites por emissor aplicáveis às classes de FIF. A alternativa correta é a que prevê limite de:",
+    "opcoes": {
+      "A": "Até 10% quando o emissor for uma instituição financeira autorizada pelo Bacen.",
+      "B": "Até 10% quando o emissor for companhia aberta.",
+      "C": "Até 5% quando o emissor for um fundo de investimento.",
+      "D": "Até 10% quando o emissor for uma pessoa natural."
+    },
+    "correta": "B",
+    "explicacao": "O limite de concentração por emissor sobre o patrimônio líquido das classes dos FIF, quando o emissor for companhia aberta, é de até 10%. Quando o emissor for instituição financeira autorizada pelo Bacen, o limite é de até 20%; para pessoa natural, até 5%. Não há limite máximo quando o emissor for fundo de investimento."
+  },
+  {
+    "id": 11,
+    "numero_original": 11,
+    "codigo": "FK1739",
+    "versao": 8,
+    "tema": "CGA - Investimentos no Exterior, Legislação e Tributação de Fundos",
+    "objetivo": "Entender e explicar as estratégias de investimentos adotadas por hedge funds.",
+    "pergunta": "Para um fundo event-driven, qual alternativa deve ser tomada pelo gestor que quer aumentar a rentabilidade do investimento e considera duas empresas em processo de aquisição?",
+    "opcoes": {
+      "A": "Comprar a empresa compradora e vender a empresa vendedora.",
+      "B": "Comprar a empresa vendedora e vender a empresa compradora.",
+      "C": "Comprar a compradora e comprar a vendedora.",
+      "D": "Vender a compradora e vender a vendedora."
+    },
+    "correta": "B",
+    "explicacao": "Se a empresa A anuncia que comprará a empresa B, espera-se que a ação da empresa B suba em função do prêmio pago na aquisição, enquanto a ação da empresa A pode cair até que as sinergias sejam capturadas. O gestor pode se aproveitar comprando ações da empresa vendedora e vendendo a descoberto as ações da compradora."
+  },
+  {
+    "id": 12,
+    "numero_original": 12,
+    "codigo": "FK4399",
+    "versao": 23,
+    "tema": "CGA - Investimentos no Exterior, Legislação e Tributação de Fundos",
+    "objetivo": "Calcular o valor do Imposto de Renda nos fundos de renda fixa de curto prazo e de longo prazo.",
+    "pergunta": "Um investidor aplicou recursos em um Fundo de Renda Fixa Referenciado DI e efetuou o resgate após 150 dias da aplicação. Neste caso, pagaria a alíquota de:",
+    "opcoes": {
+      "A": "15,0%.",
+      "B": "17,5%.",
+      "C": "20,0%.",
+      "D": "22,5%."
+    },
+    "correta": "D",
+    "explicacao": "Fundos de renda fixa, de curto ou longo prazo, estão sujeitos à alíquota de 22,5% para aplicações de 0 a 180 dias corridos. Como o resgate ocorreu após 150 dias, aplica-se a alíquota de 22,5%."
+  },
+  {
+    "id": 13,
+    "numero_original": 13,
+    "codigo": "FK0219",
+    "versao": 23,
+    "tema": "CGA - Investimentos no Exterior, Legislação e Tributação de Fundos",
+    "objetivo": "Entender e explicar as vedações e obrigações do administrador e do gestor.",
+    "pergunta": "São obrigações do administrador fiduciário de um fundo de investimento:\n\nI. Divulgar as informações periódicas e eventuais da classe de cotas.\n\nII. Contratar os serviços de auditoria independente.\n\nIII. Substituir o gestor, nos casos previstos pela CVM.\n\nEstá correto o que se afirma apenas em:",
+    "opcoes": {
+      "A": "I e II.",
+      "B": "I e III.",
+      "C": "II e III.",
+      "D": "I, II e III."
+    },
+    "correta": "A",
+    "explicacao": "As afirmativas I e II estão corretas, pois abrangem responsabilidades do administrador fiduciário. A afirmativa III é incorreta, pois compete privativamente à assembleia de cotistas deliberar sobre a substituição de prestador de serviço essencial, como administrador e gestor."
+  },
+  {
+    "id": 14,
+    "numero_original": 14,
+    "codigo": "FK18367",
+    "versao": 31,
+    "tema": "CGA - Investimentos no Exterior, Legislação e Tributação de Fundos",
+    "objetivo": "Conhecer as regras de composição das carteiras dos Fundos de Investimento Financeiro (FIF) segundo a tipificação da CVM e seus riscos: Fundo de Renda Fixa, Fundo de Ações, Fundo Cambial, Fundo Multimercado e utilização de sufixos para cada classe.",
+    "pergunta": "Sobre as classes de cotas tipificadas como Renda Fixa Referenciada é correto afirmar:",
+    "opcoes": {
+      "A": "devem manter 95% do patrimônio líquido investido em títulos da dívida pública federal.",
+      "B": "podem investir em derivativos para fins de alavancagem.",
+      "C": "podem investir 5% do patrimônio líquido em CCB emitida por pessoa física.",
+      "D": "devem manter, no mínimo, 95% do patrimônio líquido em ativos considerados de baixo risco de crédito."
+    },
+    "correta": "C",
+    "explicacao": "As classes Renda Fixa Referenciada devem manter ao menos 95% do patrimônio líquido em ativos que acompanhem determinado índice de referência. Além disso, no mínimo 80% deve estar em títulos da dívida pública federal ou em ativos de renda fixa de baixo risco de crédito. Assim, até 20% da carteira pode estar em outros ativos de renda fixa, permitindo, por exemplo, 5% em CCB emitida por pessoa física. Derivativos são restritos a hedge."
+  },
+  {
+    "id": 15,
+    "numero_original": 15,
+    "codigo": "FK22347",
+    "versao": 5,
+    "tema": "CGA - Investimentos no Exterior, Legislação e Tributação de Fundos",
+    "objetivo": "Identificar os diferentes setores da economia em que são classificadas as ações no mercado norte-americano.",
+    "pergunta": "Um mandato de renda variável internacional possui núcleo indexado e parcela ativa autorizada a desviar de setores. A carteira ativa está acima do benchmark em Consumer Discretionary e abaixo em Consumer Staples e Utilities. O cenário-base passou a considerar desaceleração da atividade, renda disponível pressionada e maior busca por receitas estáveis. A recomendação deve indicar:",
+    "opcoes": {
+      "A": "ampliar Consumer Discretionary e reduzir Consumer Staples e Utilities.",
+      "B": "reduzir Consumer Discretionary e ampliar Consumer Staples e Utilities, avaliando custos de rotatividade e risco de timing.",
+      "C": "manter Consumer Discretionary acima do benchmark, pois o núcleo indexado neutraliza o ciclo.",
+      "D": "reduzir Consumer Discretionary e ampliar Consumer Staples e Utilities, pois o núcleo indexado reduz o risco de timing."
+    },
+    "correta": "B",
+    "explicacao": "A recomendação adequada é reduzir Consumer Discretionary e ampliar Consumer Staples e Utilities. O consumo discricionário é mais sensível ao ciclo econômico, enquanto bens essenciais e utilities tendem a ter receitas mais resistentes. A estratégia é rotação setorial e exige avaliar custos de rotatividade e risco de timing. O núcleo indexado não neutraliza a exposição cíclica da parcela ativa nem elimina os custos e riscos do ajuste."
+  },
+  {
+    "id": 16,
+    "numero_original": 16,
+    "codigo": "FK22351",
+    "versao": 7,
+    "tema": "CGA - Investimentos no Exterior, Legislação e Tributação de Fundos",
+    "objetivo": "Explicar as principais características dos tipos de ações common e preferred stocks e identificar as vantagens e desvantagens de cada tipo para o investidor.",
+    "pergunta": "Um comitê administra carteira global de renda variável classificada como equity income. O gestor propõe trocar parte das posições por preferred stocks norte-americanas para reduzir dependência da política anual de dividendos. A recomendação tecnicamente adequada é:",
+    "opcoes": {
+      "A": "aprovar a substituição como neutra, pois preferred stocks preservam a classificação acionária do mandato.",
+      "B": "aprovar uso limitado, mantendo common stocks na exposição avaliada contra o índice e tratando preferred stocks como parcela de renda, sem equivalência automática ao benchmark.",
+      "C": "rejeitar a inclusão, pois preferred stocks se aproximam de crédito e são incompatíveis com carteira acionária.",
+      "D": "ampliar a troca como ajuste value, pois a estabilidade das distribuições reduz tracking error."
+    },
+    "correta": "B",
+    "explicacao": "A decisão adequada é admitir uso limitado e funcional das preferred stocks, sem tratá-las como substitutas neutras das common stocks. As common stocks preservam melhor a exposição comparável ao índice. Preferred stocks podem contribuir para renda, por pagamentos mais previsíveis e prioridade econômica, mas alteram a leitura de risco e desempenho. A troca integral confundiria estabilidade de fluxo com aderência ao benchmark, e a rejeição total seria excessiva."
+  },
+  {
+    "id": 17,
+    "numero_original": 17,
+    "codigo": "FK9917",
+    "versao": 15,
+    "tema": "CGA - Gestão de Carteiras Renda Variável",
+    "objetivo": "Definir e contrastar os métodos de indexação de full replication, amostragem estratificada e otimização, considerando suas vantagens, desvantagens e adequação em função das características do benchmark.",
+    "pergunta": "Considerando fatores que dificultam a implementação de uma estratégia passiva, ela tende a ser mais difícil quando o índice de referência é composto por:",
+    "opcoes": {
+      "A": "muitos ativos, sendo uma grande proporção de baixa liquidez.",
+      "B": "muitos ativos, sendo uma pequena proporção de baixa liquidez.",
+      "C": "poucos ativos, sendo uma pequena proporção de baixa liquidez.",
+      "D": "poucos ativos, sendo uma grande proporção de baixa liquidez."
+    },
+    "correta": "A",
+    "explicacao": "Quanto maior o número de ativos da carteira teórica, mais custoso é replicar o índice, pois há mais transações. Quanto menor a liquidez dos ativos, maior a dificuldade de replicação, pois pode não haver ofertas suficientes e a preços justos para compra ou venda."
+  },
+  {
+    "id": 18,
+    "numero_original": 18,
+    "codigo": "FK18370",
+    "versao": 13,
+    "tema": "CGA - Gestão de Carteiras Renda Variável",
+    "objetivo": "Analisar os procedimentos necessários à estruturação de áreas de análise de renda variável, incluindo as diferenças entre análise técnica e fundamentalista, a comparação entre os processos top-down e bottom-up, e a avaliação da possibilidade de terceirização das áreas de análise, com suas vantagens e desvantagens.",
+    "pergunta": "Um analista avalia dez empresas de um setor usando indicadores financeiros, balanços e situação econômica. Depois, o gestor escolhe uma delas descartando a outra com base no comportamento recente do preço da ação e no IFR. O processo utilizou, respectivamente:",
+    "opcoes": {
+      "A": "análise técnica e análise fundamentalista.",
+      "B": "análise fundamentalista e análise técnica.",
+      "C": "análise contábil e análise macroeconômica.",
+      "D": "análise top-down e análise passiva."
+    },
+    "correta": "B",
+    "explicacao": "A análise inicial, baseada em indicadores financeiros, balanços e saúde econômica, é fundamentalista. A decisão posterior com base no preço e no IFR caracteriza análise técnica, que utiliza indicadores derivados de preços e volume de negociação."
+  },
+  {
+    "id": 19,
+    "numero_original": 19,
+    "codigo": "FK22350",
+    "versao": 5,
+    "tema": "CGA - Gestão de Carteiras Renda Variável",
+    "objetivo": "Analisar, comparar e contrastar as várias metodologias usadas para construir os índices de estilos de ações.",
+    "pergunta": "Um fundo norte-americano se apresenta como estratégia de crescimento em empresas de alta capitalização. Regressão contra quatro índices gera: small-cap growth = 0,00; large-cap growth = 0,10; small-cap value = 0,25; large-cap value = 0,65; R² = 0,72. Outra regressão com dois índices de grandes empresas atribui todo o peso a large-cap value e tem R² = 0,85. Para avaliar o gestor, a conclusão deve indicar:",
+    "opcoes": {
+      "A": "o fundo é large-cap value, com benchmark 85% large-cap value.",
+      "B": "o fundo é large-cap value, com benchmark 65% large-cap value, 25% small-cap value e 10% large-cap growth.",
+      "C": "o fundo é large-cap value, com benchmark 100% large-cap value.",
+      "D": "o fundo é value, com benchmark 90% value e 10% growth."
+    },
+    "correta": "B",
+    "explicacao": "A análise indica predominância large-cap value, mas não autoriza avaliar por índice puro. A regressão com quatro índices é mais adequada, pois separa capitalização e orientação value/growth, preserva coeficientes não negativos somando 1 e identifica exposições que ficariam ocultas. O benchmark compatível deve refletir 65% large-cap value, 25% small-cap value e 10% large-cap growth. R² maior na regressão simplificada não basta se a especificação mascara dimensões relevantes."
+  },
+  {
+    "id": 20,
+    "numero_original": 20,
+    "codigo": "FK22356",
+    "versao": 5,
+    "tema": "CGA - Gestão de Carteiras Renda Variável",
+    "objetivo": "Analisar a estratégia de gestão denominada enhanced indexing e suas variantes baseadas em ações e derivativos, definir a Lei Fundamental da Gestão Ativa, suas hipóteses e limitações e explicar como o Information Ratio se altera com a incorporação de novas estratégias.",
+    "pergunta": "Na revisão do orçamento de pesquisa de um fundo de enhanced indexing, o comitê recebe duas propostas para elevar o Information Ratio: ampliar cobertura de ações com recomendações derivadas do mesmo sinal macrosetorial; e manter ações sem opinião no peso do benchmark acrescentando cash equitization com retorno da gestão da duration do caixa. O parecer deve reconhecer que:",
+    "opcoes": {
+      "A": "o primeiro projeto tende a elevar mais o IR, pois aumenta o Investor Breadth.",
+      "B": "o segundo projeto só agrega valor se criar decisões distintas, com IC positivo líquido de custos; ampliar nominalmente a cobertura não basta.",
+      "C": "os dois projetos devem avançar, pois ampliar cobertura e frequência decisória eleva o IR.",
+      "D": "o segundo projeto deve ser rejeitado, pois derivativos descaracterizam a gestão semiativa."
+    },
+    "correta": "B",
+    "explicacao": "Pela Lei Fundamental da Gestão Ativa, o Information Ratio depende do Information Coefficient e do número de decisões efetivamente distintas, o Investor Breadth. Ampliar a cobertura não aumenta necessariamente o breadth se as recomendações derivam do mesmo sinal. Cash equitization pode agregar valor se acrescentar fonte distinta de decisão com IC positivo, controle de custos e validação do modelo. Ações sem opinião devem ficar próximas ao benchmark e a busca de retorno excedente deve respeitar o controle de risco ativo."
+  },
+  {
+    "id": 21,
+    "numero_original": 21,
+    "codigo": "FK22551",
+    "versao": 5,
+    "tema": "CGA - Gestão de Carteiras Renda Variável",
+    "objetivo": "Compreender as finalidades dos indicadores baseados em volume e explanar as especificidades do On Balance Volume (OBV).",
+    "pergunta": "Após redução defensiva em renda variável, a classe Multimercado manteve caixa tático. A política permite recompor exposição por ETF do Ibovespa ou carteira ativa de estilo. O Ibovespa superou resistência com volume acima da média e OBV inclinado para cima; o recorte de estilo melhorou volume, mas sem rompimento e sem OBV claro. A ordem tática mais consistente é:",
+    "opcoes": {
+      "A": "direcionar o caixa ao recorte de estilo, antecipando rotação.",
+      "B": "recompor a exposição pelo ETF do índice amplo, sem antecipar a compra do recorte por melhoria relativa de volume.",
+      "C": "comprar ETF do Ibovespa, substituindo a referência customizada.",
+      "D": "direcionar o caixa ao recorte de estilo, pois a concentração da alta reduz a qualidade do sinal do ETF."
+    },
+    "correta": "B",
+    "explicacao": "A recomposição deve ocorrer pelo canal em que o sinal técnico está completo. O Ibovespa rompeu resistência com volume acima da média e OBV ascendente, sustentando exposição ampla via ETF. A melhoria do recorte de estilo pede atenção, mas não configura confirmação técnica sem rompimento de resistência e inclinação clara do OBV. Comprar o recorte seria antecipar rotação não confirmada."
+  },
+  {
+    "id": 22,
+    "numero_original": 22,
+    "codigo": "FK9952",
+    "versao": 14,
+    "tema": "CGA - Gestão de Investimentos e de Risco",
+    "objetivo": "Entender e interpretar os conceitos de Duration de Macaulay e Duration Modificada.",
+    "pergunta": "São feitas as seguintes afirmativas sobre a sensibilidade dos títulos prefixados sem opção embutida em relação aos movimentos na curva de juros:\n\nI. Títulos com maior convexidade favorecem o investidor.\n\nII. Quando as taxas de juros diminuem, o efeito no preço do título, da Duration e Convexidade são contrários.\n\nIII. Se as taxas de juros sobem, a convexidade tem um efeito de aumentar o preço do título.\n\nEstão corretas apenas as seguintes afirmativas:",
+    "opcoes": {
+      "A": "I e II.",
+      "B": "I e III.",
+      "C": "II e III.",
+      "D": "I, II e III."
+    },
+    "correta": "B",
+    "explicacao": "Para títulos sem opção embutida, a convexidade é fator que aumenta o preço dos títulos independentemente da direção do movimento das taxas de juros. Por isso, quanto maior a convexidade, maior o benefício para o investidor. Duration e convexidade têm o mesmo efeito de aumentar o preço quando há queda nas taxas de juros."
+  },
+  {
+    "id": 23,
+    "numero_original": 23,
+    "codigo": "FK6742",
+    "versao": 11,
+    "tema": "CGA - Gestão de Investimentos e de Risco",
+    "objetivo": "Explicar o método Black-Litterman de alocação estratégica.",
+    "pergunta": "Na revisão da política de alocação estratégica, o comitê discutia substituir a otimização tradicional por método que partisse de composição mais estável e permitisse incorporar visões do investidor. Uma provável vantagem da abordagem Black-Litterman sobre as otimizações típicas de média variância é que as carteiras resultantes apresentam:",
+    "opcoes": {
+      "A": "maior retorno.",
+      "B": "menor risco sistêmico.",
+      "C": "menor tracking error.",
+      "D": "maior grau de diversificação."
+    },
+    "correta": "D",
+    "explicacao": "Uma provável vantagem da abordagem Black-Litterman sobre otimizações tradicionais de média variância é menor concentração nas carteiras resultantes, pois o modelo é baseado em benchmarks diversificados. Não há base suficiente para estabelecer vantagens quanto a retorno, risco sistêmico ou tracking error."
+  },
+  {
+    "id": 24,
+    "numero_original": 24,
+    "codigo": "FK0103",
+    "versao": 24,
+    "tema": "CGA - Gestão de Investimentos e de Risco",
+    "objetivo": "Comparar e analisar a utilização do Tracking Error versus Erro Quadrático Médio.",
+    "pergunta": "No meio de um pregão volátil, gestor de fundo de ações referenciado ao Ibovespa recebe aplicação relevante. Para evitar distorções desnecessárias entre a carteira e o índice de referência no momento da entrada de capital, a providência mais adequada é:",
+    "opcoes": {
+      "A": "executar as compras imediatamente.",
+      "B": "comprar gradativamente, para obter melhores preços médios.",
+      "C": "comprar no leilão de fechamento.",
+      "D": "aguardar o crédito dos recursos e comprar na abertura seguinte."
+    },
+    "correta": "C",
+    "explicacao": "As ações são precificadas nos benchmarks pelos preços de fechamento. Para evitar tracking error, a melhor opção é realizar as compras no leilão de fechamento do dia em que a aplicação foi realizada."
+  },
+  {
+    "id": 25,
+    "numero_original": 25,
+    "codigo": "FK14094",
+    "versao": 23,
+    "tema": "CGA - Gestão de Investimentos e de Risco",
+    "objetivo": "Analisar, explicar e distinguir os principais tipos de risco em operações financeiras: de mercado, de câmbio, de inflação, de volatilidade, de evento e soberano, operacional, contraparte, legal, regulatório e ASG.",
+    "pergunta": "Dois profissionais discutem ajustes em fundo multimercado. O gestor afirma que, em cenário de aumento da inflação e possível alta de juros, é recomendável aumentar exposição a títulos pós-fixados. O analista complementa que, em fundos com investimentos no exterior, a gestão da exposição cambial é tão relevante quanto a seleção dos ativos internacionais. Está correto o que se afirma:",
+    "opcoes": {
+      "A": "pelo gestor, apenas.",
+      "B": "pelo analista, apenas.",
+      "C": "pelo gestor e pelo analista.",
+      "D": "por nenhum dos dois."
+    },
+    "correta": "C",
+    "explicacao": "O gestor está correto, pois em cenário de aumento da inflação há expectativa de elevação dos juros, e títulos pós-fixados indexados ao CDI ou Selic tendem a refletir esse movimento. O analista também está correto, pois em investimentos no exterior o retorno em reais depende do desempenho do ativo e da variação cambial, que pode ampliar ou reduzir ganhos."
+  },
+  {
+    "id": 26,
+    "numero_original": 26,
+    "codigo": "FK12363",
+    "versao": 20,
+    "tema": "CGA - Gestão de Investimentos e de Risco",
+    "objetivo": "Distinguir as estratégias de rebalanceamento lineares, côncavas e convexas.",
+    "pergunta": "Em um mercado de tendência de alta, a melhor e a pior estratégia de rebalanceamento de carteiras são denominadas, respectivamente:",
+    "opcoes": {
+      "A": "CPPI e Constant Mix.",
+      "B": "CPPI e Buy-and-hold.",
+      "C": "Constant Mix e CPPI.",
+      "D": "Buy-and-hold e Constant Mix."
+    },
+    "correta": "A",
+    "explicacao": "A estratégia CPPI é mais adequada para mercados com tendência, pois compra mais ações à medida que elas se valorizam e vende à medida que se desvalorizam. Constant Mix mantém proporção fixa, vendendo ações quando se valorizam e comprando quando se desvalorizam, sendo mais adequada a mercados sem tendência e com oscilações entre topos e fundos."
+  },
+  {
+    "id": 27,
+    "numero_original": 27,
+    "codigo": "FK12705",
+    "versao": 18,
+    "tema": "CGA - Gestão de Investimentos e de Risco",
+    "objetivo": "Calcular o VaR de uma carteira com dois ativos, dados os pesos de cada ativo na carteira, o VaR individual e sua correlação.",
+    "pergunta": "Considere matriz de variância e covariância mensal: Ibovespa variância 0,003275; dólar variância 0,002148; covariância -0,001639. Para carteira com R$ 1 milhão em cada ativo, VaR mensal a 95% com fator 1,65 é aproximadamente:",
+    "opcoes": {
+      "A": "R$ 2 milhões.",
+      "B": "R$ 1 milhão.",
+      "C": "R$ 85.448,66.",
+      "D": "R$ 76.418,34."
+    },
+    "correta": "D",
+    "explicacao": "DP Ibovespa = √0,003275 = 0,057228. DP Dólar = √0,002148 = 0,046351. Correlação = -0,001639 / (0,057228 x 0,046351) = -0,617954. VaR Ibovespa = 1.000.000 x 1,65 x 0,057228 = R$ 94.425,57. VaR Dólar = 1.000.000 x 1,65 x 0,046351 = R$ 76.471,76. VaR da carteira = √(VaR A² + VaR B² + 2 x VaR A x VaR B x correlação) = R$ 76.418,34."
+  },
+  {
+    "id": 28,
+    "numero_original": 28,
+    "codigo": "FK12900",
+    "versao": 16,
+    "tema": "CGA - Gestão de Investimentos e de Risco",
+    "objetivo": "Entender, explicar, calcular e interpretar os conceitos de Duration de Macaulay e Duration Modificada, relacionando-os com outras variáveis de mercado visando fazer uma recomendação de investimento.",
+    "pergunta": "Na rotina de acompanhamento de uma carteira de renda fixa mantida até perto do vencimento, a área de risco buscava indicador mais constante que o desvio-padrão dos preços dos títulos, dado que estes se aproximam do valor de face conforme o vencimento se aproxima. A medida é:",
+    "opcoes": {
+      "A": "Duration modificada.",
+      "B": "Convexidade.",
+      "C": "Dollar value of a basis point (DV01).",
+      "D": "Volatilidade do rendimento (yield volatility)."
+    },
+    "correta": "A",
+    "explicacao": "A duration modificada mede a sensibilidade de uma carteira de renda fixa às flutuações da taxa de juros. Ela tende a se reduzir à medida que os vencimentos se aproximam, pois menor maturidade implica menor duration. As demais alternativas não contemplam medida com o mesmo nível de constância conforme os vencimentos se aproximam."
+  },
+  {
+    "id": 29,
+    "numero_original": 29,
+    "codigo": "FK1762",
+    "versao": 12,
+    "tema": "CGA - Gestão de Investimentos e de Risco",
+    "objetivo": "Avaliar o risco de crédito de uma posição, entender o risco de contraparte e os derivativos de crédito, calcular a perda esperada dada a probabilidade de default e a taxa de recuperação, e explicar os métodos de gestão do risco de crédito.",
+    "pergunta": "Uma varejista vende parcelado e exige avalista. Historicamente, 5% das operações a prazo ficam inadimplentes. Por conta do avalista, a taxa de recuperação dado a inadimplência é 40%. Considerando PD de 5%, recuperação de 40% e exposição dado default de 100%, a taxa de perda esperada é:",
+    "opcoes": {
+      "A": "2,00%.",
+      "B": "3,00%.",
+      "C": "5,00%.",
+      "D": "60%."
+    },
+    "correta": "B",
+    "explicacao": "O loss given default (LGD) é 1 - taxa de recuperação. Assim, LGD = 1 - 40% = 60%. A perda esperada é PD x LGD = 5% x 60% = 3%."
+  },
+  {
+    "id": 30,
+    "numero_original": 30,
+    "codigo": "FK1764",
+    "versao": 21,
+    "tema": "CGA - Gestão de Investimentos e de Risco",
+    "objetivo": "Calcular o VaR de uma carteira com dois ativos, dados os pesos de cada ativo na carteira, o VaR individual e sua correlação.",
+    "pergunta": "Carteira possui R$ 100.000 em título americano com VaR de R$ 4.000 e R$ 100.000 em título em euros com VaR de R$ 4.500. A correlação entre os títulos é 0,87. O VaR da carteira é aproximadamente:",
+    "opcoes": {
+      "A": "R$ 7.220,00.",
+      "B": "R$ 8.220,00.",
+      "C": "R$ 8.500,00.",
+      "D": "R$ 9.200,00."
+    },
+    "correta": "B",
+    "explicacao": "VaR(A+B) = [(VaR A)² + (VaR B)² + 2 x VaR A x VaR B x correlação]^0,5. Substituindo: [(4.000)² + (4.500)² + 2 x 4.000 x 4.500 x 0,87]^0,5 = [16.000.000 + 20.250.000 + 31.320.000]^0,5 = R$ 8.220,10. As taxas de câmbio e alfa são informações desnecessárias, pois os VaRs individuais já estão em reais."
+  },
+  {
+    "id": 31,
+    "numero_original": 31,
+    "codigo": "FK4769",
+    "versao": 18,
+    "tema": "CGA - Gestão de Investimentos e de Risco",
+    "objetivo": "Distinguir as estratégias de rebalanceamento lineares, côncavas e convexas.",
+    "pergunta": "O fundo tem R$ 100MM em ativos, piso de R$ 85MM e utiliza CPPI com multiplicador 5. Caso tenha queda de 5% em ações, qual operação será feita para manter a proporção CPPI?",
+    "opcoes": {
+      "A": "Comprar R$ 15MM em ações.",
+      "B": "Comprar R$ 25MM em ações.",
+      "C": "Vender R$ 15MM em ações.",
+      "D": "Vender R$ 25MM em ações."
+    },
+    "correta": "C",
+    "explicacao": "Pela fórmula do CPPI, exposição em ações = m x (total de ativos - piso). Inicialmente: 5 x (100 - 85) = R$ 75MM em ações. Com queda de 5%, a posição em ações passa a R$ 71,25MM e o total da carteira a R$ 96,25MM. A nova exposição desejada é 5 x (96,25 - 85) = R$ 56,25MM. Portanto, é necessário vender R$ 15MM em ações."
+  },
+  {
+    "id": 32,
+    "numero_original": 32,
+    "codigo": "FK18369",
+    "versao": 10,
+    "tema": "CGA - Gestão de Investimentos e de Risco",
+    "objetivo": "Avaliar o risco de crédito de uma posição, entender o risco de contraparte e os derivativos de crédito, calcular a perda esperada dada a probabilidade de default e a taxa de recuperação, e explicar os métodos de gestão do risco de crédito.",
+    "pergunta": "Uma carteira de crédito de R$ 15.000.000 tem PD de 3% e taxa de recuperação de 50%. O valor da provisão esperada para perdas com crédito é:",
+    "opcoes": {
+      "A": "R$ 225.000.",
+      "B": "R$ 450.000.",
+      "C": "R$ 750.000.",
+      "D": "R$ 112.500."
+    },
+    "correta": "A",
+    "explicacao": "A perda esperada é exposição x probabilidade de default x LGD. Como LGD = 1 - recuperação = 50%, temos: Expected Loss = 15.000.000 x 0,03 x 0,50 = R$ 225.000."
+  },
+  {
+    "id": 33,
+    "numero_original": 33,
+    "codigo": "FK22402",
+    "versao": 5,
+    "tema": "CGA - Gestão de Investimentos e de Risco",
+    "objetivo": "Explicar o método Black-Litterman de alocação estratégica.",
+    "pergunta": "Após revisão de alocação estratégica, uma fundação constatou que pequenas mudanças nos retornos esperados deslocavam a carteira para posições concentradas. A carteira de mercado era diversificada, e a equipe tinha convicção moderada de que uma classe internacional estava subestimada. A recomendação metodológica deve ser:",
+    "opcoes": {
+      "A": "usar OMV tradicional, suavizando retornos por limites.",
+      "B": "usar OMV reversa, preservando retornos implícitos como premissa central.",
+      "C": "usar Black-Litterman, ajustando retornos implícitos por convicções aprovadas antes de nova OMV, ainda sujeita aos limites da política.",
+      "D": "usar OMV tradicional com retornos esperados aproximados dos retornos implícitos."
+    },
+    "correta": "C",
+    "explicacao": "O método compatível é Black-Litterman, pois preserva ancoragem nos retornos implícitos e permite incorporar convicções aprovadas antes da otimização. O problema original é a sensibilidade da OMV tradicional a estimativas instáveis. Usar apenas OMV reversa apagaria a visão própria. Aproximar mecanicamente retornos esperados dos implícitos não incorpora formalmente a convicção ao equilíbrio de mercado."
+  },
+  {
+    "id": 34,
+    "numero_original": 34,
+    "codigo": "FK9973",
+    "versao": 10,
+    "tema": "CGA - Avaliação de Desempenho",
+    "objetivo": "Indicar os passos na construção de um benchmark customizado.",
+    "pergunta": "Um gestor tem como objetivos replicar benchmark e manter-se neutro em relação ao câmbio. A regressão é Y = α + β1 x benchmark + β2 x câmbio. Coeficientes: α = 0,50%; β1 = 1; β2 = não significativamente diferente de zero. Evidenciam alinhamento aos objetivos apenas os coeficientes:",
+    "opcoes": {
+      "A": "α, β1 e β2.",
+      "B": "β1 e β2.",
+      "C": "α e β1.",
+      "D": "α e β2."
+    },
+    "correta": "B",
+    "explicacao": "O alfa positivo evidencia que o fundo não está aderente ao objetivo de replicar o benchmark, pois gerou retorno excedente que pode decorrer de exposição superior à permitida. β1 igual a 1 indica que mudanças no benchmark geram mudanças similares no fundo, alinhado à replicação. β2 não significativamente diferente de zero indica ausência de relação linear com câmbio, alinhada à neutralidade cambial."
+  },
+  {
+    "id": 35,
+    "numero_original": 35,
+    "codigo": "FK12189",
+    "versao": 18,
+    "tema": "CGA - Avaliação de Desempenho",
+    "objetivo": "Calcular, comparar e contrastar as seguintes medidas de avaliação de desempenho ajustadas ao risco: Alfa de Jensen, Índice de Sharpe, Índice de Treynor, Information Ratio e Índice M2.",
+    "pergunta": "Sobre o Índice de Sharpe, considere:\n\nI. É um indicador adequado para retornos com distribuição normal.\n\nII. Dentre dois que possuem o mesmo Índice de Sharpe, um aumento na taxa livre de risco beneficiará o ativo com maior risco.\n\nIII. Os ativos com maiores retornos terão maior Índice de Sharpe, pois o numerador contempla a diferença entre retorno do ativo e ativo livre de risco.\n\nEstá correto apenas:",
+    "opcoes": {
+      "A": "I e II.",
+      "B": "I e III.",
+      "C": "II e III.",
+      "D": "I, II e III."
+    },
+    "correta": "A",
+    "explicacao": "A afirmativa I está correta, pois o Sharpe compara retorno relativo contra o ativo livre de risco com a volatilidade da carteira, usando desvio-padrão; sua utilização pode ser menos satisfatória quando retornos não são normalmente distribuídos. A II está correta pelo racional da fórmula IS = (Rativo - TLR) / σativo. A III está incorreta, pois o Sharpe mede eficiência de retorno por unidade de risco; maior retorno isolado não implica maior Sharpe sem considerar risco."
+  },
+  {
+    "id": 36,
+    "numero_original": 36,
+    "codigo": "FK2040",
+    "versao": 14,
+    "tema": "CGA - Avaliação de Desempenho",
+    "objetivo": "Calcular, interpretar e contrastar as taxas de retorno time-weighted e money-weighted, bem como avaliar o efeito de contribuições externas e retiradas no cálculo dessas taxas.",
+    "pergunta": "Um fundo recebeu aplicação inicial de R$ 75 milhões e, um mês depois, novo aporte de R$ 5 milhões. Ao fim do primeiro mês, o patrimônio estava em R$ 82 milhões e, no segundo mês, não houve novas movimentações. Sabendo que o TWRR do período foi de 2,5%, qual foi aproximadamente o saldo final da carteira ao fim do segundo mês?",
+    "opcoes": {
+      "A": "R$ 80,45 MM.",
+      "B": "R$ 82,30 MM.",
+      "C": "R$ 81,87 MM.",
+      "D": "R$ 83,00 MM."
+    },
+    "correta": "C",
+    "explicacao": "O retorno do primeiro período é (82 - 75 - 5) / 75 = 2,6667%. Como o TWRR total é 2,5%, temos (1 + 2,6667%) x (1 + R2) = 1,025. Logo, 1 + R2 = 0,99837 e R2 = -0,162%. No segundo período, saldo inicial é 82, sem aportes; então (X - 82) / 82 = -0,162%, resultando em X ≈ R$ 81,87 milhões."
+  },
+  {
+    "id": 37,
+    "numero_original": 37,
+    "codigo": "FK2059",
+    "versao": 25,
+    "tema": "CGA - Avaliação de Desempenho",
+    "objetivo": "Descrever a abordagem de atribuição micro e entender a utilização de um modelo de fatores fundamentais para a atribuição de desempenho.",
+    "pergunta": "A equipe reuniu pesos e retornos da carteira e do benchmark para mensurar o efeito associado à distribuição entre segmentos. Considerando os dados: pesos do fundo 0,50 em ações, 0,45 em renda fixa e 0,05 em caixa; pesos do benchmark 0,60, 0,30 e 0,10; retornos do benchmark 12,90%, 6,90% e 4,10%. O rendimento atribuível à alocação setorial é:",
+    "opcoes": {
+      "A": "-0,46%.",
+      "B": "0,55%.",
+      "C": "-0,19%.",
+      "D": "0,46%."
+    },
+    "correta": "A",
+    "explicacao": "O retorno do benchmark é 10,22% = 0,60 x 12,9 + 0,30 x 6,9 + 0,10 x 4,1. O efeito setor é: (0,50 - 0,60) x (12,9 - 10,22) + (0,45 - 0,30) x (6,9 - 10,22) + (0,05 - 0,10) x (4,1 - 10,22) = -0,46%."
+  },
+  {
+    "id": 38,
+    "numero_original": 38,
+    "codigo": "FK22364",
+    "versao": 7,
+    "tema": "CGA - Avaliação de Desempenho",
+    "objetivo": "Avaliar os efeitos dos seguintes fatores na variação ideal de uma classe de ativos, assumindo a metodologia de rebalanceamento de percentual de carteira: custos de transação, tolerância aos riscos, correlação, volatilidade de classe de ativos e volatilidade do restante da carteira.",
+    "pergunta": "O fundo balanceado usa rebalanceamento por percentual da carteira, com alocação estratégica de 30% para ações globais e corredor de 25% a 35%. O peso atual em ações globais é 36,20%; custos de transação acima da média; tolerância ao risco menor; correlação baixa; volatilidade da classe e do restante da carteira elevada. A providência compatível é:",
+    "opcoes": {
+      "A": "adiar o rebalanceamento e ampliar o corredor.",
+      "B": "manter exposição até a próxima data, pois o desvio é pequeno.",
+      "C": "utilizar novos aportes para reequilibrar a posição nesta revisão, sem ampliar o corredor diante das variáveis de risco.",
+      "D": "reduzir ao centro da meta e ampliar corredor futuro."
+    },
+    "correta": "C",
+    "explicacao": "A exposição ultrapassou o corredor e deve ser reduzida, mas a execução pode aproveitar novos aportes para controlar custos. Embora custos maiores favoreçam corredores mais largos, os demais fatores apontam no sentido oposto: menor tolerância ao risco, baixa correlação, alta volatilidade da classe e alta volatilidade do restante da carteira reduzem a margem aceitável de desvio. Portanto, deve-se tratar o excesso sem abandonar a disciplina de rebalanceamento."
+  },
+  {
+    "id": 39,
+    "numero_original": 39,
+    "codigo": "FK10799",
+    "versao": 9,
+    "tema": "CGA - Gestão de Carteiras - Renda Fixa",
+    "objetivo": "Demonstrar e explicar a gestão de curva de juros e suas variações, bem como analisar as considerações importantes para se implementar essa estratégia.",
+    "pergunta": "Na Horizonte Asset, o cenário-base indicava queda de 5 bps no vértice de 2 anos, 7 bps no de 10 anos e 10 bps no de 30 anos. Considerando a expectativa sobre a curva de juros, em relação à carteira de títulos zero cupom, o gestor deve preferencialmente comprar títulos de:",
+    "opcoes": {
+      "A": "2 e 30 anos e vender títulos de 10 anos.",
+      "B": "10 anos e vender títulos de 2 e 30 anos.",
+      "C": "2 e 10 anos e vender títulos de 30 anos.",
+      "D": "30 anos e vender títulos de 2 e 10 anos."
+    },
+    "correta": "D",
+    "explicacao": "Se o gestor espera que as taxas de juros caiam mais no longo prazo que no curto prazo, deve alongar o prazo médio da carteira. Portanto, deve comprar títulos de prazo mais longo, de 30 anos, e vender títulos de prazos mais curtos, de 2 e 10 anos."
+  },
+  {
+    "id": 40,
+    "numero_original": 40,
+    "codigo": "FK14102",
+    "versao": 9,
+    "tema": "CGA - Gestão de Carteiras - Renda Fixa",
+    "objetivo": "Comparar e contrastar diferentes tipos de carteira de títulos de renda fixa: barbell, bullet e ladder.",
+    "pergunta": "Em relação à imunização de um único passivo de renda fixa, considere:\n\nEstratégia 1: comprar título com pagamento de cupom com mesma duration e valor futuro.\n\nEstratégia 2: comprar título zero cupom com mesma data de vencimento.\n\nPode-se considerar a estratégia 2 mais vantajosa que a estratégia 1, pois:",
+    "opcoes": {
+      "A": "reduz volatilidade do valor do ativo.",
+      "B": "aumenta a rentabilidade da carteira.",
+      "C": "oferece maior liquidez.",
+      "D": "minimiza o risco de reinvestimento."
+    },
+    "correta": "D",
+    "explicacao": "A principal vantagem da estratégia 2 é não estar sujeita ao risco de reinvestimento dos fluxos intermediários, pois utiliza título que não paga cupons. Além disso, oferece melhor qualidade de imunização, pois o vencimento do título coincide com o vencimento do passivo."
+  },
+  {
+    "id": 41,
+    "numero_original": 41,
+    "codigo": "FK14106",
+    "versao": 12,
+    "tema": "CGA - Gestão de Carteiras - Renda Fixa",
+    "objetivo": "Analisar o risco de imunização relacionado às mudanças não paralelas na curva de yield e formular maneiras para reduzir esses riscos.",
+    "pergunta": "Durante revisão de carteira para passivo de renda fixa, dois profissionais registraram:\n\nGestor: em uma mudança paralela na curva de juros, uma carteira totalmente imunizada se mantém imunizada.\n\nAnalista: se a curva torcer, ao invés de mudar paralelamente, a carteira perde imunização.\n\nEstá correto o afirmado:",
+    "opcoes": {
+      "A": "pelo gestor, apenas.",
+      "B": "pelo analista, apenas.",
+      "C": "pelo gestor e pelo analista.",
+      "D": "por nenhum dos dois."
+    },
+    "correta": "C",
+    "explicacao": "O gestor está correto, pois a teoria clássica de imunização assume movimentos paralelos da curva. Se a taxa muda, muda pela mesma quantia e direção em todos os prazos. O analista também está correto, pois mudanças paralelas raramente ocorrem; se a curva torce, igualar a duration da carteira à duration do passivo não garante imunização."
+  },
+  {
+    "id": 42,
+    "numero_original": 42,
+    "codigo": "FK12706",
+    "versao": 14,
+    "tema": "CGA - Gestão de Carteiras - Renda Fixa",
+    "objetivo": "Descrever estratégias de gestão da curva de juros, suas características e seus possíveis resultados dados diferentes cenários de movimentação da curva de juros: steepening, flattening e butterfly.",
+    "pergunta": "Ao estruturar a imunização de um passivo com vencimento em 10 anos, a carteira escolheu títulos concentrados nos extremos de 2 e 20 anos, preservando o casamento de duration. Diante de alta paralela relevante da curva, o valor do ativo tenderá a apresentar:",
+    "opcoes": {
+      "A": "acréscimo superior ao acréscimo do passivo.",
+      "B": "acréscimo inferior ao acréscimo do passivo.",
+      "C": "decréscimo superior ao decréscimo do passivo.",
+      "D": "decréscimo inferior ao decréscimo do passivo."
+    },
+    "correta": "D",
+    "explicacao": "Com alta paralela da curva, valores de ativo e passivo caem. Porém, como a carteira barbell combina vencimentos com alta dispersão em relação ao passivo, sua convexidade positiva gera performance comparativamente superior. Assim, o decréscimo do valor da carteira tende a ser inferior ao decréscimo do passivo."
+  },
+  {
+    "id": 43,
+    "numero_original": 43,
+    "codigo": "FK22297",
+    "versao": 5,
+    "tema": "CGA - Gestão de Carteiras - Renda Fixa",
+    "objetivo": "Analisar o risco de imunização relacionado às mudanças não paralelas na curva de yield e formular maneiras para reduzir esses riscos.",
+    "pergunta": "A equipe de ALM compara duas carteiras para financiar compromisso futuro. Ambas têm valor presente equivalente ao passivo e mesma Macaulay duration agregada. A Carteira M concentra pagamentos no horizonte do compromisso; a Carteira N combina vencimentos bastante curtos e bastante longos. Com projeção de alteração desigual entre vértices da curva, qual orientação técnica deve prevalecer?",
+    "opcoes": {
+      "A": "Manter a Carteira N, pois mudanças não paralelas podem ser compensadas pela convexidade.",
+      "B": "Preferir a Carteira M e acompanhar exposições por key rate duration, pois mudanças não paralelas podem comprometer a imunização obtida apenas por valor presente e duration agregada.",
+      "C": "Tratar as carteiras como equivalentes.",
+      "D": "Adotar a Carteira N com rebalanceamentos frequentes, pois mudanças não paralelas podem ser neutralizadas."
+    },
+    "correta": "B",
+    "explicacao": "A orientação correta é preferir a carteira com fluxos concentrados no horizonte do compromisso e acompanhar key rate duration. Valor presente e Macaulay duration agregada são condições centrais da imunização clássica, mas não garantem proteção quando a curva se altera de forma não paralela. A maior dispersão dos fluxos aumenta o risco de imunização. A key rate duration permite avaliar sensibilidade a pontos específicos da curva e é mais adequada para torções e alterações de formato."
+  },
+  {
+    "id": 44,
+    "numero_original": 44,
+    "codigo": "FK22409",
+    "versao": 10,
+    "tema": "CGA - Gestão de Carteiras - Renda Fixa",
+    "objetivo": "Analisar, sob a ótica do risco e do retorno, os possíveis efeitos da utilização de derivativos em carteiras de renda fixa: contratos a termo, contratos futuros, opções, swaps e derivativos de crédito.",
+    "pergunta": "Na revisão tática de uma carteira de renda fixa, há posição relevante em títulos prefixados com cupons, duration agregada próxima de quatro anos e vencimentos entre sete e nove anos. Após mudança no comunicado do Copom, o comitê decide reduzir temporariamente a exposição sem vender os títulos. Há liquidez em DI futuro nos vértices de quatro, sete e nove anos. A orientação operacional deve:",
+    "opcoes": {
+      "A": "vender contratos de DI futuro no vértice próximo à duration agregada, mantendo os títulos à vista e reduzindo a exposição à alta das taxas.",
+      "B": "comprar contratos de DI futuro no vértice próximo à duration agregada.",
+      "C": "vender contratos de DI futuro nos vértices próximos aos vencimentos finais.",
+      "D": "comprar contratos de DI futuro nos vértices longos mais líquidos."
+    },
+    "correta": "A",
+    "explicacao": "A proteção contra alta de taxas em carteira prefixada com cupons exige venda de DI futuro no vértice mais próximo à duration agregada, não ao vencimento final dos títulos. Como o contrato é operacionalizado em PU, a venda do futuro se beneficia da queda do PU quando as taxas sobem, compensando parte da perda dos papéis prefixados. Comprar DI futuro inverte o sinal econômico da proteção, e usar vencimentos finais troca prazo contratual por sensibilidade efetiva."
+  }
+]
