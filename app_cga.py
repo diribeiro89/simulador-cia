@@ -857,13 +857,24 @@ elif modo == "Simulado":
                     questoes_combinadas.extend(f)
                 render_simulado(nome, questoes_combinadas, estado_key="aleatorio")
             elif nome == "Personalizado":
-                # Escolha da fonte
-                fontes_personalizado = {nome: lista for nome, lista in bancos.items() if nome.startswith("Simulado")}
-                if not fontes_personalizado:
-                    st.warning("Nenhum simulado disponível.")
-                    continue
-                fonte_escolhida = st.selectbox("Fonte para o simulado personalizado", list(fontes_personalizado.keys()), key="fonte_personalizado")
-                render_simulado("Personalizado", fontes_personalizado[fonte_escolhida], is_personalizado=True)
+                st.subheader("Simulado Personalizado")
+                # Fonte: permite escolher Banco Principal ou Simulados
+                fontes_personalizado = {nome: lista for nome, lista in bancos.items() if lista}
+                # Ordenar para ficar bonito
+                fonte_escolhida = st.selectbox("Fonte de questões", list(fontes_personalizado.keys()), key="fonte_personalizado")
+                # Obter temas disponíveis na fonte escolhida
+                questoes_fonte = fontes_personalizado[fonte_escolhida]
+                temas_disponiveis = sorted({q.get("tema") for q in questoes_fonte if q.get("tema")})
+                tema_filtro = st.selectbox("Filtrar por tema (opcional)", ["Todos"] + temas_disponiveis, key="tema_personalizado")
+                # Aplicar filtro
+                if tema_filtro != "Todos":
+                    questoes_filtradas = [q for q in questoes_fonte if q.get("tema") == tema_filtro]
+                else:
+                    questoes_filtradas = questoes_fonte
+                if not questoes_filtradas:
+                    st.warning("Nenhuma questão disponível com esse filtro.")
+                else:
+                    render_simulado("Personalizado", questoes_filtradas, is_personalizado=True)
             elif nome == "Histórico":
                 historico = db.carregar_simulados_historico()
                 if not historico:
@@ -872,24 +883,20 @@ elif modo == "Simulado":
                     df_hist = pd.DataFrame(historico)
                     df_hist["data"] = pd.to_datetime(df_hist["data"])
                     df_hist["taxa"] = (df_hist["acertos"] / df_hist["total_questoes"] * 100).round(1)
-                    # Resumo
                     st.metric("Total de simulados", len(historico))
                     st.metric("Média de acertos", f"{df_hist['taxa'].mean():.1f}%")
-                    # Tabela
                     st.dataframe(
                         df_hist[["data", "fonte", "total_questoes", "acertos", "nao_respondidas", "taxa"]]
                         .rename(columns={"data": "Data", "fonte": "Simulado", "total_questoes": "Total", "acertos": "Acertos", "nao_respondidas": "Não resp.", "taxa": "% Acertos"}),
                         use_container_width=True,
                         hide_index=True,
                     )
-                    # Gráfico de evolução
                     if len(historico) > 1:
                         st.line_chart(df_hist.set_index("data")["taxa"])
             else:
                 # Simulado 1-4
                 fonte = bancos.get(nome, [])
                 render_simulado(nome, fonte, estado_key=nome)
-
 # =======================================================
 # MODO 4 — Prova ANBIMA
 # =======================================================
