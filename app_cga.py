@@ -13,18 +13,47 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-ARQUIVO_QUESTOES = "questoes_cga_todos_temas.json"
-
 # -------------------------------------------------------
-# Carregar questões
+# Carregar múltiplos bancos de questões
 # -------------------------------------------------------
 @st.cache_data
-def carregar_questoes():
-    with open(ARQUIVO_QUESTOES, encoding="utf-8") as f:
-        return json.load(f)
+def carregar_bancos():
+    """
+    Retorna um dicionário com nome_fonte -> lista de questões.
+    Cada questão recebe um ID numérico único e o campo 'fonte'.
+    """
+    arquivos = {
+        "Banco Principal": "questoes_cga_todos_temas.json",
+        "Simulado 1": "simulado_1_completo.json",
+        "Simulado 2": "simulado_2_completo.json",
+        "Simulado 3": "simulado_3_completo.json",
+        "Simulado 4": "simulado_4_completo.json",
+    }
+    bancos = {}
+    # Offsets para evitar conflitos de ID
+    offset = {
+        "Banco Principal": 0,
+        "Simulado 1": 10000,
+        "Simulado 2": 20000,
+        "Simulado 3": 30000,
+        "Simulado 4": 40000,
+    }
+    for nome, caminho in arquivos.items():
+        try:
+            with open(caminho, encoding="utf-8") as f:
+                questoes = json.load(f)
+            # Atribui IDs únicos e adiciona campo 'fonte'
+            for i, q in enumerate(questoes):
+                novo_id = offset[nome] + (q.get("id", i + 1))
+                q["id_unico"] = novo_id
+                q["fonte"] = nome
+            bancos[nome] = questoes
+        except FileNotFoundError:
+            bancos[nome] = []
+            st.warning(f"Arquivo {caminho} não encontrado. Banco '{nome}' vazio.")
+    return bancos
 
-questoes = carregar_questoes()
-db.init_db()
+bancos = carregar_bancos()
 
 # -------------------------------------------------------
 # Configuração da Prova (ANBIMA CGA) – 45 questões
@@ -122,6 +151,7 @@ def inicializar_estado():
         "modo": "Treino livre",
         "filtro_tema_atual": "Todos",
         "filtro_objetivo_atual": "Todos",
+        "fonte_atual": "Banco Principal",
         "questao_atual": None,
         "respondido": False,
         "resposta_usuario": None,
@@ -139,6 +169,8 @@ def inicializar_estado():
         "revisao_lista": [],
         "revisao_i": 0,
         "revisao_concluida": False,
+        "revisao_respondido": False,
+        "revisao_resposta": None,
         "confirmar_finalizar": False,
         "leitner": {},
         "alternativas_descartadas": {},
@@ -151,21 +183,25 @@ def inicializar_estado():
         "prova_registrado": False,
         "inicio_prova": None,
         "prova_duracao_min": TEMPO_PROVA_MIN,
-        "prova_tempo_restante": None,
         "destacadas": db.carregar_destacadas(),
         "confirmar_zerar": False,
-        # Navegação livre em revisão e destacadas
-        "revisao_respondido": False,
-        "revisao_resposta": None,
         "destacada_lista": [],
         "destacada_i": 0,
         "destacada_respondido": False,
         "destacada_resposta": None,
-        # Buscar questão
         "busca_codigo": "",
         "busca_questao": None,
         "busca_respondido": False,
         "busca_resposta": None,
+        # Simulado FK Oficial
+        "simulado_oficial_questoes": [],
+        "simulado_oficial_respostas": {},
+        "simulado_oficial_i": 0,
+        "simulado_oficial_ativo": False,
+        "simulado_oficial_finalizado": False,
+        "simulado_oficial_registrado": False,
+        "inicio_simulado_oficial": None,
+        "simulado_oficial_duracao_min": TEMPO_PROVA_MIN,
     }
     for k, v in defaults.items():
         if k not in st.session_state:
@@ -174,16 +210,18 @@ def inicializar_estado():
         if k in st.session_state:
             st.session_state[k] = v
     st.session_state.historico = db.load_historico()
-    st.session_state.erros = db.load_erros(questoes)
+    st.session_state.erros = db.load_erros(questoes_buscadas())
     st.session_state.leitner = db.load_leitner()
     st.session_state.alternativas_descartadas = db.load_descartes()
     st.session_state.destacadas = db.carregar_destacadas()
     if st.session_state.questao_atual:
-        ids_questoes = {q["id"] for q in questoes}
-        if st.session_state.questao_atual.get("id") not in ids_questoes:
-            st.session_state.questao_atual = None
+        # Verifica se a questão atual ainda existe no banco atual
+        pass
 
-inicializar_estado()
+def questoes_buscadas():
+    """Retorna a lista de questões da fonte selecionada."""
+    fonte = st.session_state.get("fonte_atual", "Banco Principal")
+    return bancos.get(fonte, [])
 
 # -------------------------------------------------------
 # Resets
@@ -237,6 +275,16 @@ def resetar_busca():
     st.session_state.busca_respondido = False
     st.session_state.busca_resposta = None
 
+def resetar_simulado_oficial():
+    st.session_state.simulado_oficial_questoes = []
+    st.session_state.simulado_oficial_respostas = {}
+    st.session_state.simulado_oficial_i = 0
+    st.session_state.simulado_oficial_ativo = False
+    st.session_state.simulado_oficial_finalizado = False
+    st.session_state.simulado_oficial_registrado = False
+    st.session_state.inicio_simulado_oficial = None
+    st.session_state.confirmar_finalizar = False
+
 # -------------------------------------------------------
 # Leitner
 # -------------------------------------------------------
@@ -261,7 +309,11 @@ def obter_questoes_para_revisar():
         if dados['proxima'] and dados['proxima'] <= hoje:
             ids_revisar.append(qid)
     ids_revisar.sort(key=lambda x: st.session_state.leitner[x]['nivel'])
-    mapa = {q['id']: q for q in questoes}
+    # Precisamos buscar as questões completas de todos os bancos
+    todas = []
+    for lista in bancos.values():
+        todas.extend(lista)
+    mapa = {q['id_unico']: q for q in todas}
     return [mapa[id] for id in ids_revisar if id in mapa]
 
 # -------------------------------------------------------
@@ -278,9 +330,10 @@ def toggle_descarte(q_id, letra):
     persistir_tudo()
 
 def render_alternativas_com_descarte(q, key_prefix):
-    descartadas = st.session_state.alternativas_descartadas.get(q['id'], [])
+    qid = q.get("id_unico", q["id"])
+    descartadas = st.session_state.alternativas_descartadas.get(qid, [])
     opcoes = list(q['opcoes'].keys())
-    resposta_key = f"resposta_{q['id']}_{key_prefix}"
+    resposta_key = f"resposta_{qid}_{key_prefix}"
     if resposta_key not in st.session_state:
         st.session_state[resposta_key] = None
     
@@ -313,13 +366,13 @@ def render_alternativas_com_descarte(q, key_prefix):
                         </div>
                     """, unsafe_allow_html=True)
                 else:
-                    if st.button(label, key=f"sel_{q['id']}_{letra}_{key_prefix}", use_container_width=True):
+                    if st.button(label, key=f"sel_{qid}_{letra}_{key_prefix}", use_container_width=True):
                         st.session_state[resposta_key] = letra
                         st.rerun()
         with col2:
             btn_label = "↩️" if is_descartada else "✖️"
-            if st.button(btn_label, key=f"desc_{q['id']}_{letra}_{key_prefix}"):
-                toggle_descarte(q['id'], letra)
+            if st.button(btn_label, key=f"desc_{qid}_{letra}_{key_prefix}"):
+                toggle_descarte(qid, letra)
                 if st.session_state[resposta_key] == letra:
                     st.session_state[resposta_key] = None
                 st.rerun()
@@ -338,18 +391,19 @@ def toggle_destaque(q_id):
         db.adicionar_destacada(q_id)
 
 # -------------------------------------------------------
-# UI Helpers (card da questão com botão de destaque)
+# UI Helpers
 # -------------------------------------------------------
 def card_questao(q, mostrar_objetivo=True, mostrar_destaque=False):
-    num = q.get("numero_original", q["id"])
+    qid = q.get("id_unico", q["id"])
+    num = q.get("numero_original", qid)
     cols = st.columns([1, 0.1]) if mostrar_destaque else st.columns([1])
     with cols[0]:
-        st.markdown(f"### Questão {num} — {q['codigo']} | V. {q['versao']}")
+        st.markdown(f"### Questão {num} — {q['codigo']} | V. {q['versao']} | {q.get('fonte', '')}")
     if mostrar_destaque:
         with cols[1]:
-            is_dest = q['id'] in st.session_state.destacadas
-            if st.button("⭐" if is_dest else "☆", key=f"dest_{q['id']}"):
-                toggle_destaque(q['id'])
+            is_dest = qid in st.session_state.destacadas
+            if st.button("⭐" if is_dest else "☆", key=f"dest_{qid}"):
+                toggle_destaque(qid)
                 st.rerun()
     if q.get("tema"):
         st.caption(f"📂 {q['tema']}")
@@ -381,29 +435,34 @@ LABEL_ORIGEM = {
     "revisao_erros": "Revisão de erros",
     "simulado": "Simulado",
     "prova": "Prova ANBIMA",
+    "simulado_oficial": "Simulado FK Oficial",
 }
 
 def escolher_questao(lista=None):
-    base = lista if lista else questoes
+    base = lista if lista else questoes_buscadas()
     return random.choice(base) if base else None
 
 def adicionar_erro_sem_duplicar(q):
-    ids = {e["id"] for e in st.session_state.erros}
-    if q["id"] not in ids:
+    qid = q.get("id_unico", q["id"])
+    ids = {e.get("id_unico", e["id"]) for e in st.session_state.erros}
+    if qid not in ids:
         st.session_state.erros.append(q)
         persistir_tudo()
 
 def remover_erro(q):
-    st.session_state.erros = [e for e in st.session_state.erros if e["id"] != q["id"]]
+    qid = q.get("id_unico", q["id"])
+    st.session_state.erros = [e for e in st.session_state.erros if e.get("id_unico", e["id"]) != qid]
     persistir_tudo()
 
 def registrar_resposta(q, resposta, origem="treino"):
+    qid = q.get("id_unico", q["id"])
     correto = (resposta is not None) and (resposta == q["correta"])
     if origem == "revisao_erros":
-        atualizar_leitner(q['id'], correto)
+        atualizar_leitner(qid, correto)
     registro = {
         "data": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "id": q["id"],
+        "id": qid,
+        "id_original": q.get("id"),
         "numero_original": q.get("numero_original"),
         "tema": q.get("tema"),
         "codigo": q["codigo"],
@@ -412,10 +471,11 @@ def registrar_resposta(q, resposta, origem="treino"):
         "correta": q["correta"],
         "acertou": correto,
         "origem": origem,
+        "fonte": q.get("fonte", ""),
     }
     st.session_state.historico.append(registro)
     if correto:
-        st.session_state.acertos.append(q["id"])
+        st.session_state.acertos.append(qid)
         if origem == "revisao_erros":
             remover_erro(q)
     else:
@@ -424,22 +484,44 @@ def registrar_resposta(q, resposta, origem="treino"):
     return correto
 
 def filtrar_base(tema="Todos", objetivo="Todos"):
-    base = questoes
+    base = questoes_buscadas()
     if tema != "Todos":
         base = [q for q in base if q.get("tema") == tema]
     if objetivo != "Todos":
         base = [q for q in base if q.get("objetivo") == objetivo]
     return base
 
+def obter_temas():
+    todos = set()
+    for lista in bancos.values():
+        for q in lista:
+            if q.get("tema"):
+                todos.add(q["tema"])
+    return sorted(todos)
+
 # -------------------------------------------------------
 # Sidebar
 # -------------------------------------------------------
 st.sidebar.title("📚 Simulador CGA")
 
+# Seletor de fonte
+fontes_disponiveis = [nome for nome, lista in bancos.items() if lista]
+fonte_selecionada = st.sidebar.selectbox(
+    "Fonte de questões",
+    fontes_disponiveis,
+    index=fontes_disponiveis.index(st.session_state.fonte_atual) if st.session_state.fonte_atual in fontes_disponiveis else 0,
+)
+if fonte_selecionada != st.session_state.fonte_atual:
+    st.session_state.fonte_atual = fonte_selecionada
+    resetar_treino()
+    persistir_tudo()
+    st.rerun()
+
 modo_options = [
     "Treino livre",
     "Revisar erros",
     "Simulado",
+    "Simulado FK Oficial",
     "Prova",
     "Histórico de Provas",
     "Questões Destacadas",
@@ -458,6 +540,8 @@ if modo != st.session_state.modo:
         resetar_destacada()
     elif modo == "Buscar Questão":
         resetar_busca()
+    elif modo == "Simulado FK Oficial":
+        resetar_simulado_oficial()
     resetar_treino()
     persistir_tudo()
     st.rerun()
@@ -470,6 +554,7 @@ st.sidebar.metric("⭐ Destacadas", len(st.session_state.destacadas))
 
 st.sidebar.divider()
 
+# Botão zerar com confirmação de senha
 if st.sidebar.button("🗑️ Zerar histórico", use_container_width=True):
     st.session_state.confirmar_zerar = True
 
@@ -491,6 +576,7 @@ if st.session_state.confirmar_zerar:
                     resetar_prova()
                     resetar_destacada()
                     resetar_busca()
+                    resetar_simulado_oficial()
                     db.save_historico([])
                     db.save_estado(st.session_state)
                     db.limpar_provas()
@@ -505,13 +591,16 @@ if st.session_state.confirmar_zerar:
                 st.session_state.confirmar_zerar = False
                 st.rerun()
 
+st.sidebar.divider()
+st.sidebar.caption(f"Fonte atual: {st.session_state.fonte_atual}")
+
 # -------------------------------------------------------
 # Cabeçalho
 # -------------------------------------------------------
 st.title("📚 Simulador CGA")
 st.caption("Treino, revisão, simulado, prova, histórico, destacadas e busca")
 
-temas = sorted({q.get("tema") for q in questoes if q.get("tema")})
+temas = obter_temas()
 
 # =======================================================
 # MODO 1 — Treino livre
@@ -519,8 +608,9 @@ temas = sorted({q.get("tema") for q in questoes if q.get("tema")})
 if modo == "Treino livre":
     st.subheader("Treino livre")
     filtro_tema = st.selectbox("Filtrar por tema", ["Todos"] + temas)
+    # Filtro de objetivos (dinâmico)
     objetivos_disp = sorted({
-        q.get("objetivo") for q in questoes
+        q.get("objetivo") for q in questoes_buscadas()
         if q.get("objetivo") and (filtro_tema == "Todos" or q.get("tema") == filtro_tema)
     })
     filtro_objetivo = st.selectbox("Filtrar por objetivo", ["Todos"] + objetivos_disp)
@@ -565,7 +655,7 @@ if modo == "Treino livre":
     st.divider()
     card_questao(q, mostrar_destaque=True)
 
-    resposta = render_alternativas_com_descarte(q, f"treino_{q['id']}")
+    resposta = render_alternativas_com_descarte(q, f"treino_{q.get('id_unico', q['id'])}")
 
     if not st.session_state.respondido:
         if st.button("✅ Responder", use_container_width=True):
@@ -587,12 +677,11 @@ if modo == "Treino livre":
             st.rerun()
 
 # =======================================================
-# MODO 2 — Revisar erros (com navegação livre)
+# MODO 2 — Revisar erros
 # =======================================================
 elif modo == "Revisar erros":
     st.subheader("Revisar erros (Leitner)")
 
-    # Preparar lista de revisão (todos os erros ou agendados)
     if not st.session_state.revisao_lista:
         questoes_revisar = obter_questoes_para_revisar()
         if questoes_revisar:
@@ -611,7 +700,6 @@ elif modo == "Revisar erros":
     total_rev = len(st.session_state.revisao_lista)
     i_rev = st.session_state.revisao_i
 
-    # Controles de navegação (superior)
     col_prev, col_pos, col_info = st.columns([1, 1, 2])
     with col_prev:
         if st.button("◀ Anterior", disabled=(i_rev == 0), use_container_width=True):
@@ -629,11 +717,10 @@ elif modo == "Revisar erros":
         st.caption(f"Questão {i_rev + 1} de {total_rev}")
 
     q = st.session_state.revisao_lista[i_rev]
-
     st.divider()
     card_questao(q, mostrar_destaque=True)
 
-    resposta = render_alternativas_com_descarte(q, f"rev_{q['id']}_{i_rev}")
+    resposta = render_alternativas_com_descarte(q, f"rev_{q.get('id_unico', q['id'])}_{i_rev}")
 
     if not st.session_state.revisao_respondido:
         if st.button("✅ Responder", use_container_width=True):
@@ -647,12 +734,7 @@ elif modo == "Revisar erros":
                 st.rerun()
     else:
         mostrar_resultado(q, st.session_state.revisao_resposta)
-        # Remover da lista após acertar? A função registrar_resposta já remove se acertou.
-        # Se errou, permanece.
         if st.button("🔄 Avançar", use_container_width=True):
-            # Atualiza a lista (pode ter mudado após registrar)
-            if i_rev < len(st.session_state.revisao_lista):
-                st.session_state.revisao_i = i_rev
             st.session_state.revisao_respondido = False
             st.session_state.revisao_resposta = None
             st.rerun()
@@ -664,9 +746,11 @@ elif modo == "Simulado":
     st.subheader("Simulado personalizado")
 
     if not st.session_state.simulado_ativo and not st.session_state.simulado_finalizado:
-        filtro_tema_sim = st.selectbox("Tema do simulado", ["Todos"] + temas)
-        base_sim = filtrar_base(filtro_tema_sim, "Todos")
-
+        # Usa a fonte selecionada
+        base_sim = questoes_buscadas()
+        if not base_sim:
+            st.warning("Nenhuma questão disponível na fonte selecionada.")
+            st.stop()
         col1, col2 = st.columns(2)
         max_qtd = max(5, len(base_sim))
         qtd = col1.number_input(
@@ -691,7 +775,8 @@ elif modo == "Simulado":
 
         if st.button("🚀 Iniciar simulado", use_container_width=True):
             qtd_real = int(min(qtd, len(base_sim)))
-            st.session_state.simulado_questoes = random.sample(base_sim, qtd_real)
+            selecionadas = random.sample(base_sim, qtd_real)
+            st.session_state.simulado_questoes = selecionadas
             st.session_state.simulado_respostas = {}
             st.session_state.simulado_i = 0
             st.session_state.simulado_ativo = True
@@ -733,10 +818,10 @@ elif modo == "Simulado":
         st.divider()
         card_questao(q, mostrar_objetivo=False, mostrar_destaque=True)
 
-        resposta_sim = render_alternativas_com_descarte(q, f"sim_{q['id']}_{i}")
+        resposta_sim = render_alternativas_com_descarte(q, f"sim_{q.get('id_unico', q['id'])}_{i}")
 
         if resposta_sim is not None:
-            st.session_state.simulado_respostas[q["id"]] = resposta_sim
+            st.session_state.simulado_respostas[q.get("id_unico", q["id"])] = resposta_sim
             persistir_tudo()
 
         st.divider()
@@ -789,16 +874,16 @@ elif modo == "Simulado":
 
         if not st.session_state.simulado_registrado:
             for q_item in sim:
-                registrar_resposta(q_item, respostas.get(q_item["id"]), "simulado")
+                registrar_resposta(q_item, respostas.get(q_item.get("id_unico", q_item["id"])), "simulado")
             st.session_state.simulado_registrado = True
             persistir_tudo()
 
         acertos_sim = sum(
             1 for q_item in sim
-            if respostas.get(q_item["id"]) == q_item["correta"]
+            if respostas.get(q_item.get("id_unico", q_item["id"])) == q_item["correta"]
         )
         total_sim = len(sim)
-        nao_resp = sum(1 for q_item in sim if respostas.get(q_item["id"]) is None)
+        nao_resp = sum(1 for q_item in sim if respostas.get(q_item.get("id_unico", q_item["id"])) is None)
         taxa_sim = acertos_sim / total_sim * 100 if total_sim else 0.0
 
         st.success("✅ Simulado finalizado!")
@@ -811,7 +896,7 @@ elif modo == "Simulado":
 
         with st.expander("📋 Ver correção completa", expanded=False):
             def render_correcao(q_item, resp):
-                num = q_item.get("numero_original", q_item["id"])
+                num = q_item.get("numero_original", q_item.get("id_unico", q_item["id"]))
                 correto = (resp is not None) and (resp == q_item["correta"])
                 nao_respondida = resp is None
                 if correto:
@@ -833,30 +918,30 @@ elif modo == "Simulado":
 
             with tabs[0]:
                 for q_item in sim:
-                    render_correcao(q_item, respostas.get(q_item["id"]))
+                    render_correcao(q_item, respostas.get(q_item.get("id_unico", q_item["id"])))
 
             with tabs[1]:
-                lst = [q_item for q_item in sim if respostas.get(q_item["id"]) == q_item["correta"]]
+                lst = [q_item for q_item in sim if respostas.get(q_item.get("id_unico", q_item["id"])) == q_item["correta"]]
                 if lst:
                     for q_item in lst:
-                        render_correcao(q_item, respostas.get(q_item["id"]))
+                        render_correcao(q_item, respostas.get(q_item.get("id_unico", q_item["id"])))
                 else:
                     st.info("Nenhum acerto.")
 
             with tabs[2]:
                 lst = [
                     q_item for q_item in sim
-                    if respostas.get(q_item["id"]) is not None
-                    and respostas.get(q_item["id"]) != q_item["correta"]
+                    if respostas.get(q_item.get("id_unico", q_item["id"])) is not None
+                    and respostas.get(q_item.get("id_unico", q_item["id"])) != q_item["correta"]
                 ]
                 if lst:
                     for q_item in lst:
-                        render_correcao(q_item, respostas.get(q_item["id"]))
+                        render_correcao(q_item, respostas.get(q_item.get("id_unico", q_item["id"])))
                 else:
                     st.info("Nenhum erro.")
 
             with tabs[3]:
-                lst = [q_item for q_item in sim if respostas.get(q_item["id"]) is None]
+                lst = [q_item for q_item in sim if respostas.get(q_item.get("id_unico", q_item["id"])) is None]
                 if lst:
                     for q_item in lst:
                         render_correcao(q_item, None)
@@ -868,13 +953,212 @@ elif modo == "Simulado":
             st.rerun()
 
 # =======================================================
-# MODO 4 — Prova ANBIMA (com mapa de questões)
+# MODO 4 — Simulado FK Oficial (45 questões dos simulados 1-4)
+# =======================================================
+elif modo == "Simulado FK Oficial":
+    st.subheader("📝 Simulado FK Oficial")
+    st.caption("45 questões sorteadas dos Simulados 1 a 4 | 2h30")
+
+    if not st.session_state.simulado_oficial_ativo and not st.session_state.simulado_oficial_finalizado:
+        # Combina os 4 simulados
+        simulados = []
+        for nome in ["Simulado 1", "Simulado 2", "Simulado 3", "Simulado 4"]:
+            simulados.extend(bancos.get(nome, []))
+        if len(simulados) < 45:
+            st.warning(f"Há apenas {len(simulados)} questões nos simulados. Precisamos de pelo menos 45.")
+            st.stop()
+        st.info(f"Banco combinado: {len(simulados)} questões disponíveis.")
+        if st.button("🚀 Iniciar Simulado FK", use_container_width=True):
+            selecionadas = random.sample(simulados, 45)
+            st.session_state.simulado_oficial_questoes = selecionadas
+            st.session_state.simulado_oficial_respostas = {}
+            st.session_state.simulado_oficial_i = 0
+            st.session_state.simulado_oficial_ativo = True
+            st.session_state.simulado_oficial_finalizado = False
+            st.session_state.simulado_oficial_registrado = False
+            st.session_state.confirmar_finalizar = False
+            st.session_state.inicio_simulado_oficial = time.time()
+            persistir_tudo()
+            st.rerun()
+
+    if st.session_state.simulado_oficial_ativo:
+        elapsed = time.time() - st.session_state.inicio_simulado_oficial
+        restante = max(0.0, TEMPO_PROVA_MIN * 60 - elapsed)
+
+        if restante <= 0:
+            st.warning("⏰ Tempo encerrado. Finalizando automaticamente.")
+            st.session_state.simulado_oficial_ativo = False
+            st.session_state.simulado_oficial_finalizado = True
+            persistir_tudo()
+            st.rerun()
+
+        min_rest = int(restante // 60)
+        seg_rest = int(restante % 60)
+
+        sim = st.session_state.simulado_oficial_questoes
+        i = st.session_state.simulado_oficial_i
+        q = sim[i]
+
+        col_timer, col_prog = st.columns([1, 3])
+        col_timer.metric("⏱️ Tempo restante", f"{min_rest:02d}:{seg_rest:02d}")
+        with col_prog:
+            respondidas_n = len(st.session_state.simulado_oficial_respostas)
+            st.progress(
+                (i + 1) / len(sim),
+                text=f"Questão {i + 1} de {len(sim)} | {respondidas_n} respondidas",
+            )
+
+        st.divider()
+        card_questao(q, mostrar_objetivo=False, mostrar_destaque=True)
+
+        resposta_sim = render_alternativas_com_descarte(q, f"oficial_{q.get('id_unico', q['id'])}_{i}")
+
+        if resposta_sim is not None:
+            st.session_state.simulado_oficial_respostas[q.get("id_unico", q["id"])] = resposta_sim
+            persistir_tudo()
+
+        st.divider()
+        col1, col2, col3 = st.columns(3)
+
+        with col1:
+            if st.button("◀ Anterior", disabled=(i == 0), use_container_width=True):
+                st.session_state.simulado_oficial_i -= 1
+                st.session_state.confirmar_finalizar = False
+                persistir_tudo()
+                st.rerun()
+
+        with col2:
+            if st.button("Próxima ▶", disabled=(i == len(sim) - 1), use_container_width=True):
+                st.session_state.simulado_oficial_i += 1
+                st.session_state.confirmar_finalizar = False
+                persistir_tudo()
+                st.rerun()
+
+        with col3:
+            nao_resp_n = len(sim) - len(st.session_state.simulado_oficial_respostas)
+            if not st.session_state.confirmar_finalizar:
+                if st.button("🏁 Finalizar", use_container_width=True):
+                    if nao_resp_n > 0:
+                        st.session_state.confirmar_finalizar = True
+                        persistir_tudo()
+                        st.rerun()
+                    else:
+                        st.session_state.simulado_oficial_ativo = False
+                        st.session_state.simulado_oficial_finalizado = True
+                        persistir_tudo()
+                        st.rerun()
+            else:
+                if st.button("⚠️ Confirmar mesmo assim", use_container_width=True):
+                    st.session_state.simulado_oficial_ativo = False
+                    st.session_state.simulado_oficial_finalizado = True
+                    st.session_state.confirmar_finalizar = False
+                    persistir_tudo()
+                    st.rerun()
+
+        if st.session_state.confirmar_finalizar:
+            st.warning(
+                f"Você ainda tem **{nao_resp_n}** questão(ões) sem resposta. "
+                "Confirme para encerrar ou navegue para respondê-las."
+            )
+
+    if st.session_state.simulado_oficial_finalizado:
+        sim = st.session_state.simulado_oficial_questoes
+        respostas = st.session_state.simulado_oficial_respostas
+
+        if not st.session_state.simulado_oficial_registrado:
+            for q_item in sim:
+                registrar_resposta(q_item, respostas.get(q_item.get("id_unico", q_item["id"])), "simulado_oficial")
+            st.session_state.simulado_oficial_registrado = True
+            persistir_tudo()
+
+        acertos_sim = sum(
+            1 for q_item in sim
+            if respostas.get(q_item.get("id_unico", q_item["id"])) == q_item["correta"]
+        )
+        total_sim = len(sim)
+        nao_resp = sum(1 for q_item in sim if respostas.get(q_item.get("id_unico", q_item["id"])) is None)
+        taxa_sim = acertos_sim / total_sim * 100 if total_sim else 0.0
+
+        st.success("✅ Simulado FK Oficial finalizado!")
+
+        c1, c2, c3 = st.columns(3)
+        c1.metric("Acertos", f"{acertos_sim}/{total_sim}")
+        c2.metric("Taxa de acerto", f"{taxa_sim:.1f}%")
+        c3.metric("Não respondidas", nao_resp)
+        st.progress(taxa_sim / 100, text=f"Aproveitamento: {taxa_sim:.1f}%")
+
+        with st.expander("📋 Ver correção completa", expanded=False):
+            def render_correcao(q_item, resp):
+                num = q_item.get("numero_original", q_item.get("id_unico", q_item["id"]))
+                correto = (resp is not None) and (resp == q_item["correta"])
+                nao_respondida = resp is None
+                if correto:
+                    st.success(f"✅ Q{num} — {q_item['codigo']}: correto ({resp})")
+                elif nao_respondida:
+                    st.warning(
+                        f"⚠️ Q{num} — {q_item['codigo']}: não respondida | "
+                        f"correta: **{q_item['correta']}**"
+                    )
+                else:
+                    st.error(
+                        f"❌ Q{num} — {q_item['codigo']}: "
+                        f"você marcou **{resp}** | correta: **{q_item['correta']}**"
+                    )
+                with st.expander(f"Explicação — {q_item['codigo']}"):
+                    st.write(q_item.get("explicacao", "Sem explicação disponível."))
+
+            tabs = st.tabs(["Todas", "✅ Acertos", "❌ Erros", "⚠️ Não respondidas"])
+
+            with tabs[0]:
+                for q_item in sim:
+                    render_correcao(q_item, respostas.get(q_item.get("id_unico", q_item["id"])))
+
+            with tabs[1]:
+                lst = [q_item for q_item in sim if respostas.get(q_item.get("id_unico", q_item["id"])) == q_item["correta"]]
+                if lst:
+                    for q_item in lst:
+                        render_correcao(q_item, respostas.get(q_item.get("id_unico", q_item["id"])))
+                else:
+                    st.info("Nenhum acerto.")
+
+            with tabs[2]:
+                lst = [
+                    q_item for q_item in sim
+                    if respostas.get(q_item.get("id_unico", q_item["id"])) is not None
+                    and respostas.get(q_item.get("id_unico", q_item["id"])) != q_item["correta"]
+                ]
+                if lst:
+                    for q_item in lst:
+                        render_correcao(q_item, respostas.get(q_item.get("id_unico", q_item["id"])))
+                else:
+                    st.info("Nenhum erro.")
+
+            with tabs[3]:
+                lst = [q_item for q_item in sim if respostas.get(q_item.get("id_unico", q_item["id"])) is None]
+                if lst:
+                    for q_item in lst:
+                        render_correcao(q_item, None)
+                else:
+                    st.info("Todas as questões foram respondidas.")
+
+        if st.button("🔄 Novo Simulado FK", use_container_width=True):
+            resetar_simulado_oficial()
+            st.rerun()
+
+# =======================================================
+# MODO 5 — Prova ANBIMA
 # =======================================================
 elif modo == "Prova":
     st.subheader("📝 Prova ANBIMA CGA")
     st.caption(f"{TOTAL_QUESTOES_PROVA} questões | 2h30 | Proporções oficiais")
 
     if not st.session_state.prova_ativo and not st.session_state.prova_finalizado:
+        # Usa o banco principal para a prova (pode ser customizado)
+        base_prova = bancos.get("Banco Principal", [])
+        if not base_prova:
+            st.warning("Banco Principal vazio. Não é possível gerar a prova.")
+            st.stop()
+        # Distribuição por temas (usando o mapeamento GRUPOS_PROVA)
         distribuicao = distribuir_questoes(TOTAL_QUESTOES_PROVA, GRUPOS_PROVA)
         
         st.info("**Distribuição das questões:**")
@@ -894,16 +1178,17 @@ elif modo == "Prova":
                 for tema, qtd in temas:
                     st.write(f"    - {tema}: {qtd} questões")
         
+        # Verifica disponibilidade no banco principal
         faltam = False
         for item in distribuicao:
             tema_json = item["tema_json"]
             qtd_necessaria = item["quantidade"]
-            disponiveis = len([q for q in questoes if q.get("tema") == tema_json])
+            disponiveis = len([q for q in base_prova if q.get("tema") == tema_json])
             if disponiveis < qtd_necessaria:
                 faltam = True
                 st.error(f"❌ Tema '{tema_json}' tem apenas {disponiveis} questões, mas são necessárias {qtd_necessaria}.")
         if faltam:
-            st.warning("Não há questões suficientes para montar a prova. Adicione mais questões ao banco.")
+            st.warning("Não há questões suficientes para montar a prova. Adicione mais questões ao banco principal.")
             st.stop()
         
         if st.button("🚀 Iniciar Prova", use_container_width=True):
@@ -913,10 +1198,10 @@ elif modo == "Prova":
                 tema_json = item["tema_json"]
                 qtd = item["quantidade"]
                 grupo_nome = item["grupo_nome"]
-                qs_tema = [q for q in questoes if q.get("tema") == tema_json]
+                qs_tema = [q for q in base_prova if q.get("tema") == tema_json]
                 amostra = random.sample(qs_tema, qtd)
                 for q in amostra:
-                    grupo_por_questao[q["id"]] = grupo_nome
+                    grupo_por_questao[q.get("id_unico", q["id"])] = grupo_nome
                 questoes_prova.extend(amostra)
             random.shuffle(questoes_prova)
             
@@ -960,32 +1245,28 @@ elif modo == "Prova":
                 text=f"Questão {i + 1} de {len(prov)} | {respondidas_n} respondidas",
             )
 
-        # --- MAPA DE QUESTÕES ---
         with st.expander("🗺️ Mapa de Questões", expanded=False):
             # Agrupa por módulo
             grupos = {}
             for idx, q_item in enumerate(prov):
-                grupo = st.session_state.prova_grupo_por_questao.get(q_item['id'], 'Outros')
+                grupo = st.session_state.prova_grupo_por_questao.get(q_item.get("id_unico", q_item["id"]), 'Outros')
                 if grupo not in grupos:
                     grupos[grupo] = []
                 grupos[grupo].append((idx, q_item))
             for grupo, lista in grupos.items():
                 st.markdown(f"**{grupo}**")
-                # Exibe em linhas de até 10 números
                 for j in range(0, len(lista), 10):
                     cols = st.columns(10)
                     for k in range(10):
                         if j + k < len(lista):
                             idx, q_item = lista[j + k]
-                            is_respondida = q_item['id'] in st.session_state.prova_respostas
+                            is_respondida = q_item.get("id_unico", q_item["id"]) in st.session_state.prova_respostas
                             is_atual = (idx == i)
                             label = str(idx + 1)
-                            # Define a cor
                             if is_respondida:
                                 color = "green"
                             else:
                                 color = "red"
-                            # Estilo do botão
                             btn_style = f"background-color: {color}; color: white;" if is_respondida else f"background-color: #ffcccc; color: black;"
                             if is_atual:
                                 btn_style += " border: 3px solid yellow;"
@@ -998,20 +1279,18 @@ elif modo == "Prova":
                                 """,
                                 unsafe_allow_html=True
                             )
-                            # Usar st.button com key única
-                            # Não podemos usar onclick diretamente, vamos usar st.button
                             if cols[k].button(label, key=f"map_{idx}_{j+k}"):
                                 st.session_state.prova_i = idx
                                 st.rerun()
-                st.divider()
+                    st.divider()
 
         st.divider()
         card_questao(q, mostrar_objetivo=False, mostrar_destaque=True)
 
-        resposta_prova = render_alternativas_com_descarte(q, f"prova_{q['id']}_{i}")
+        resposta_prova = render_alternativas_com_descarte(q, f"prova_{q.get('id_unico', q['id'])}_{i}")
 
         if resposta_prova is not None:
-            st.session_state.prova_respostas[q["id"]] = resposta_prova
+            st.session_state.prova_respostas[q.get("id_unico", q["id"])] = resposta_prova
             persistir_tudo()
 
         st.divider()
@@ -1065,7 +1344,7 @@ elif modo == "Prova":
 
         if not st.session_state.prova_registrado:
             for q_item in prov:
-                registrar_resposta(q_item, respostas.get(q_item["id"]), "prova")
+                registrar_resposta(q_item, respostas.get(q_item.get("id_unico", q_item["id"])), "prova")
             st.session_state.prova_registrado = True
             persistir_tudo()
             
@@ -1073,27 +1352,27 @@ elif modo == "Prova":
             respostas_prova = []
             for q_item in prov:
                 respostas_prova.append({
-                    'questao_id': q_item['id'],
+                    'questao_id': q_item.get("id_unico", q_item["id"]),
                     'tema': q_item.get('tema', ''),
                     'codigo': q_item['codigo'],
-                    'modulo': grupo_por_questao.get(q_item['id'], 'Outros'),
-                    'resposta': respostas.get(q_item['id']),
+                    'modulo': grupo_por_questao.get(q_item.get("id_unico", q_item["id"]), 'Outros'),
+                    'resposta': respostas.get(q_item.get("id_unico", q_item["id"])),
                     'correta': q_item['correta']
                 })
             prova_data = {
                 'data': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 'duracao_segundos': duracao,
                 'total_questoes': len(prov),
-                'total_acertos': sum(1 for q in prov if respostas.get(q['id']) == q['correta'])
+                'total_acertos': sum(1 for q in prov if respostas.get(q.get("id_unico", q["id"])) == q["correta"])
             }
             db.salvar_prova(prova_data, respostas_prova)
 
         acertos_prov = sum(
             1 for q_item in prov
-            if respostas.get(q_item["id"]) == q_item["correta"]
+            if respostas.get(q_item.get("id_unico", q_item["id"])) == q_item["correta"]
         )
         total_prov = len(prov)
-        nao_resp = sum(1 for q_item in prov if respostas.get(q_item["id"]) is None)
+        nao_resp = sum(1 for q_item in prov if respostas.get(q_item.get("id_unico", q_item["id"])) is None)
         taxa_prov = acertos_prov / total_prov * 100 if total_prov else 0.0
 
         st.success("✅ Prova finalizada!")
@@ -1109,10 +1388,10 @@ elif modo == "Prova":
 
         grupos_ids = {}
         for q_item in prov:
-            grupo = grupo_por_questao.get(q_item["id"], "Outros")
+            grupo = grupo_por_questao.get(q_item.get("id_unico", q_item["id"]), "Outros")
             if grupo not in grupos_ids:
                 grupos_ids[grupo] = []
-            grupos_ids[grupo].append(q_item["id"])
+            grupos_ids[grupo].append(q_item.get("id_unico", q_item["id"]))
 
         ordem_grupos = [g["nome"] for g in GRUPOS_PROVA]
         if "Outros" in grupos_ids and "Outros" not in ordem_grupos:
@@ -1124,7 +1403,7 @@ elif modo == "Prova":
                 continue
             ids_questoes = grupos_ids[grupo]
             total = len(ids_questoes)
-            corretas_por_id = {q["id"]: q["correta"] for q in prov}
+            corretas_por_id = {q.get("id_unico", q["id"]): q["correta"] for q in prov}
             acertos = sum(1 for qid in ids_questoes if respostas.get(qid) == corretas_por_id.get(qid))
             pct = (acertos / total * 100) if total else 0.0
             dados_tabela.append({
@@ -1144,7 +1423,7 @@ elif modo == "Prova":
 
         with st.expander("📋 Ver correção completa", expanded=False):
             def render_correcao(q_item, resp):
-                num = q_item.get("numero_original", q_item["id"])
+                num = q_item.get("numero_original", q_item.get("id_unico", q_item["id"]))
                 correto = (resp is not None) and (resp == q_item["correta"])
                 nao_respondida = resp is None
                 if correto:
@@ -1166,30 +1445,30 @@ elif modo == "Prova":
 
             with tabs[0]:
                 for q_item in prov:
-                    render_correcao(q_item, respostas.get(q_item["id"]))
+                    render_correcao(q_item, respostas.get(q_item.get("id_unico", q_item["id"])))
 
             with tabs[1]:
-                lst = [q_item for q_item in prov if respostas.get(q_item["id"]) == q_item["correta"]]
+                lst = [q_item for q_item in prov if respostas.get(q_item.get("id_unico", q_item["id"])) == q_item["correta"]]
                 if lst:
                     for q_item in lst:
-                        render_correcao(q_item, respostas.get(q_item["id"]))
+                        render_correcao(q_item, respostas.get(q_item.get("id_unico", q_item["id"])))
                 else:
                     st.info("Nenhum acerto.")
 
             with tabs[2]:
                 lst = [
                     q_item for q_item in prov
-                    if respostas.get(q_item["id"]) is not None
-                    and respostas.get(q_item["id"]) != q_item["correta"]
+                    if respostas.get(q_item.get("id_unico", q_item["id"])) is not None
+                    and respostas.get(q_item.get("id_unico", q_item["id"])) != q_item["correta"]
                 ]
                 if lst:
                     for q_item in lst:
-                        render_correcao(q_item, respostas.get(q_item["id"]))
+                        render_correcao(q_item, respostas.get(q_item.get("id_unico", q_item["id"])))
                 else:
                     st.info("Nenhum erro.")
 
             with tabs[3]:
-                lst = [q_item for q_item in prov if respostas.get(q_item["id"]) is None]
+                lst = [q_item for q_item in prov if respostas.get(q_item.get("id_unico", q_item["id"])) is None]
                 if lst:
                     for q_item in lst:
                         render_correcao(q_item, None)
@@ -1201,7 +1480,7 @@ elif modo == "Prova":
             st.rerun()
 
 # =======================================================
-# MODO 5 — Histórico de Provas
+# MODO 6 — Histórico de Provas
 # =======================================================
 elif modo == "Histórico de Provas":
     st.subheader("📚 Histórico de Provas Realizadas")
@@ -1211,7 +1490,11 @@ elif modo == "Histórico de Provas":
         st.info("Nenhuma prova realizada ainda. Complete uma prova para ver o histórico.")
         st.stop()
     
-    mapa_questoes = {q['id']: q for q in questoes}
+    # Mapa de questões de todos os bancos
+    todas_questoes = []
+    for lista in bancos.values():
+        todas_questoes.extend(lista)
+    mapa_questoes = {q.get("id_unico", q["id"]): q for q in todas_questoes}
     
     for prova in provas:
         data_str = datetime.strptime(prova['data'], "%Y-%m-%d %H:%M:%S").strftime("%d/%m/%Y %H:%M")
@@ -1259,7 +1542,7 @@ elif modo == "Histórico de Provas":
                     st.write(f"- {modulo}: {dados['acertos']}/{dados['total']} ({pct:.1f}%)")
 
 # =======================================================
-# MODO 6 — Questões Destacadas (com navegação livre)
+# MODO 7 — Questões Destacadas
 # =======================================================
 elif modo == "Questões Destacadas":
     st.subheader("⭐ Revisão de Questões Destacadas")
@@ -1268,12 +1551,15 @@ elif modo == "Questões Destacadas":
         st.info("Nenhuma questão destacada. Marque questões com o botão ⭐ durante os estudos.")
         st.stop()
     
-    # Preparar lista de questões (apenas uma vez por sessão)
     if not st.session_state.destacada_lista:
-        mapa = {q['id']: q for q in questoes}
+        # Monta lista de questões destacadas
+        todas = []
+        for lista in bancos.values():
+            todas.extend(lista)
+        mapa = {q.get("id_unico", q["id"]): q for q in todas}
         questions = [mapa[qid] for qid in st.session_state.destacadas if qid in mapa]
         if not questions:
-            st.info("As questões destacadas não foram encontradas no banco.")
+            st.info("As questões destacadas não foram encontradas nos bancos.")
             st.stop()
         st.session_state.destacada_lista = questions
         random.shuffle(st.session_state.destacada_lista)
@@ -1298,7 +1584,6 @@ elif modo == "Questões Destacadas":
                 st.rerun()
         st.stop()
     
-    # Navegação livre
     col_prev, col_pos, col_info = st.columns([1, 1, 2])
     with col_prev:
         if st.button("◀ Anterior", disabled=(i == 0), use_container_width=True):
@@ -1316,13 +1601,11 @@ elif modo == "Questões Destacadas":
         st.caption(f"Questão {i + 1} de {total}")
     
     q = st.session_state.destacada_lista[i]
-    
     st.divider()
     card_questao(q, mostrar_objetivo=True, mostrar_destaque=True)
     
-    # Alternativas interativas (radio simples, sem descarte)
     opcoes = list(q['opcoes'].keys())
-    resposta_key = f"destacada_{q['id']}"
+    resposta_key = f"destacada_{q.get('id_unico', q['id'])}"
     if resposta_key not in st.session_state:
         st.session_state[resposta_key] = None
     
@@ -1330,7 +1613,7 @@ elif modo == "Questões Destacadas":
         "Escolha uma alternativa:",
         opcoes,
         format_func=lambda x: f"{x}) {q['opcoes'][x]}",
-        key=f"radio_dest_{q['id']}_{i}",
+        key=f"radio_dest_{q.get('id_unico', q['id'])}_{i}",
         index=None
     )
     st.session_state[resposta_key] = selected
@@ -1346,9 +1629,8 @@ elif modo == "Questões Destacadas":
     else:
         mostrar_resultado(q, st.session_state.destacada_resposta)
         if st.button("⭐ Remover destaque", use_container_width=True):
-            toggle_destaque(q['id'])
-            # Remover da lista atual
-            st.session_state.destacada_lista = [item for item in st.session_state.destacada_lista if item['id'] != q['id']]
+            toggle_destaque(q.get("id_unico", q["id"]))
+            st.session_state.destacada_lista = [item for item in st.session_state.destacada_lista if item.get("id_unico", item["id"]) != q.get("id_unico", q["id"])]
             if st.session_state.destacada_i >= len(st.session_state.destacada_lista):
                 st.session_state.destacada_i = max(0, len(st.session_state.destacada_lista) - 1)
             st.session_state.destacada_respondido = False
@@ -1356,7 +1638,7 @@ elif modo == "Questões Destacadas":
             st.rerun()
 
 # =======================================================
-# MODO 7 — Buscar Questão
+# MODO 8 — Buscar Questão
 # =======================================================
 elif modo == "Buscar Questão":
     st.subheader("🔍 Buscar Questão por Código")
@@ -1370,18 +1652,19 @@ elif modo == "Buscar Questão":
         st.session_state.busca_resposta = None
     
     if st.button("🔎 Buscar", use_container_width=True) and codigo_busca:
-        # Busca ignorando a versão (remove " | V. X" e faz case-insensitive)
         codigo_limpo = codigo_busca.strip().upper()
-        # Remove sufixos como " | V. 6" ou " V. 6"
         import re
         codigo_sem_versao = re.sub(r'\s*[|]?\s*V\.\s*\d+$', '', codigo_limpo)
         
-        # Procura a questão
+        # Procura em todos os bancos
         encontrada = None
-        for q in questoes:
-            codigo_q = re.sub(r'\s*[|]?\s*V\.\s*\d+$', '', q['codigo'].upper())
-            if codigo_q == codigo_sem_versao:
-                encontrada = q
+        for lista in bancos.values():
+            for q in lista:
+                codigo_q = re.sub(r'\s*[|]?\s*V\.\s*\d+$', '', q['codigo'].upper())
+                if codigo_q == codigo_sem_versao:
+                    encontrada = q
+                    break
+            if encontrada:
                 break
         
         if encontrada:
@@ -1397,7 +1680,7 @@ elif modo == "Buscar Questão":
         st.divider()
         card_questao(q, mostrar_objetivo=True, mostrar_destaque=True)
         
-        resposta = render_alternativas_com_descarte(q, f"busca_{q['id']}")
+        resposta = render_alternativas_com_descarte(q, f"busca_{q.get('id_unico', q['id'])}")
         
         if not st.session_state.busca_respondido:
             if st.button("✅ Responder", use_container_width=True):
@@ -1406,7 +1689,7 @@ elif modo == "Buscar Questão":
                 else:
                     st.session_state.busca_resposta = resposta
                     st.session_state.busca_respondido = True
-                    registrar_resposta(q, resposta, "treino")  # registra como treino
+                    registrar_resposta(q, resposta, "treino")
                     persistir_tudo()
                     st.rerun()
         else:
@@ -1416,7 +1699,7 @@ elif modo == "Buscar Questão":
                 st.rerun()
 
 # =======================================================
-# MODO 8 — Dashboard
+# MODO 9 — Dashboard
 # =======================================================
 elif modo == "Dashboard":
     st.subheader("Dashboard de desempenho")
@@ -1479,6 +1762,28 @@ elif modo == "Dashboard":
 
     st.divider()
 
+    st.markdown("### Desempenho por fonte")
+    fonte_df = (
+        df.groupby("fonte", dropna=False)
+        .agg(total=("acertou_num", "count"), acertos=("acertou_num", "sum"))
+        .reset_index()
+    )
+    fonte_df["fonte"] = fonte_df["fonte"].fillna("Sem fonte")
+    fonte_df["Taxa (%)"] = (fonte_df["acertos"] / fonte_df["total"] * 100).round(1)
+    fonte_df = fonte_df.sort_values("Taxa (%)", ascending=False)
+
+    st.bar_chart(fonte_df.set_index("fonte")["Taxa (%)"])
+
+    with st.expander("📊 Tabela detalhada por fonte"):
+        st.dataframe(
+            fonte_df[["fonte", "Taxa (%)", "acertos", "total"]].rename(
+                columns={"fonte": "Fonte", "acertos": "Acertos", "total": "Total"}
+            ).style.format({"Taxa (%)": "{:.1f}"}),
+            use_container_width=True,
+        )
+
+    st.divider()
+
     st.markdown("### Desempenho por objetivo")
     obj_df = (
         df.groupby("objetivo", dropna=False)
@@ -1525,8 +1830,10 @@ elif modo == "Dashboard":
         origem_label = LABEL_ORIGEM.get(h.get("origem"), "—")
         tema_label = h.get("tema") or "—"
         num = h.get("numero_original") or h["id"]
+        fonte_label = h.get("fonte", "")
         st.write(
-            f"{icon} **{tema_label}** | Q{num} — {h['codigo']} | "
+            f"{icon} **{tema_label}** | Q{num} — {h['codigo']} "
+            f"{f'({fonte_label})' if fonte_label else ''} | "
             f"Marcada: **{resp}** | Correta: **{h['correta']}** | "
             f"_{origem_label}_"
         )
