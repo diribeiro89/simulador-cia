@@ -50,6 +50,27 @@ def carregar_bancos():
 bancos = carregar_bancos()
 
 # -------------------------------------------------------
+# Funções auxiliares (definidas ANTES de inicializar estado)
+# -------------------------------------------------------
+def questoes_para_erros():
+    todas = []
+    for lista in bancos.values():
+        todas.extend(lista)
+    return todas
+
+def questoes_buscadas():
+    fonte = st.session_state.get("fonte_atual", "Banco Principal")
+    return bancos.get(fonte, [])
+
+def obter_temas():
+    todos = set()
+    for lista in bancos.values():
+        for q in lista:
+            if q.get("tema"):
+                todos.add(q["tema"])
+    return sorted(todos)
+
+# -------------------------------------------------------
 # Configuração da Prova
 # -------------------------------------------------------
 GRUPOS_PROVA = [
@@ -87,7 +108,7 @@ def distribuir_questoes(total, grupos):
     return distribuicao
 
 # -------------------------------------------------------
-# Estado e persistência
+# Persistência
 # -------------------------------------------------------
 def persistir_tudo():
     db.save_historico(st.session_state.historico)
@@ -99,6 +120,9 @@ def persistir_tudo():
         for qid, letras in st.session_state.alternativas_descartadas.items():
             db.save_descartes(qid, letras)
 
+# -------------------------------------------------------
+# Estado
+# -------------------------------------------------------
 def inicializar_estado():
     estado_salvo = db.load_estado()
     defaults = {
@@ -146,7 +170,7 @@ def inicializar_estado():
         },
         "em_simulado": False,
         "respostas_pendentes": [],
-        "estatisticas_questoes": db.carregar_estatisticas_questoes(),
+        "estatisticas_questoes": {},
     }
     for k, v in defaults.items():
         if k not in st.session_state:
@@ -159,7 +183,12 @@ def inicializar_estado():
     st.session_state.leitner = db.load_leitner()
     st.session_state.alternativas_descartadas = db.load_descartes()
     st.session_state.destacadas = db.carregar_destacadas()
-    st.session_state.estatisticas_questoes = db.carregar_estatisticas_questoes()
+    
+    # Tenta carregar estatísticas, mas se falhar, mantém vazio
+    try:
+        st.session_state.estatisticas_questoes = db.carregar_estatisticas_questoes()
+    except Exception:
+        st.session_state.estatisticas_questoes = {}
     
     modos_validos = ["Treino livre", "Revisar erros", "Simulado", "Prova", "Histórico de Provas", "Questões Destacadas", "Buscar Questão", "Dashboard"]
     if st.session_state.modo not in modos_validos:
@@ -169,39 +198,6 @@ def inicializar_estado():
         st.session_state.fonte_atual = "Banco Principal"
 
 inicializar_estado()
-
-# -------------------------------------------------------
-# Funções auxiliares
-# -------------------------------------------------------
-def questoes_para_erros():
-    todas = []
-    for lista in bancos.values():
-        todas.extend(lista)
-    return todas
-
-def questoes_buscadas():
-    fonte = st.session_state.get("fonte_atual", "Banco Principal")
-    return bancos.get(fonte, [])
-
-def obter_temas():
-    todos = set()
-    for lista in bancos.values():
-        for q in lista:
-            if q.get("tema"):
-                todos.add(q["tema"])
-    return sorted(todos)
-
-def escolher_questao(lista=None):
-    base = lista if lista else questoes_buscadas()
-    return random.choice(base) if base else None
-
-def filtrar_base(tema="Todos", objetivo="Todos"):
-    base = questoes_buscadas()
-    if tema != "Todos":
-        base = [q for q in base if q.get("tema") == tema]
-    if objetivo != "Todos":
-        base = [q for q in base if q.get("objetivo") == objetivo]
-    return base
 
 # -------------------------------------------------------
 # Funções de resposta e estatísticas
@@ -226,7 +222,10 @@ def atualizar_estatistica_questao(qid, acertou):
     else:
         st.session_state.estatisticas_questoes[qid]["erros"] += 1
     st.session_state.estatisticas_questoes[qid]["total"] += 1
-    db.atualizar_estatistica_questao(qid, acertou)
+    try:
+        db.atualizar_estatistica_questao(qid, acertou)
+    except Exception:
+        pass
 
 def registrar_resposta(q, resposta, origem="treino", salvar_imediato=True):
     qid = q.get("id_unico", q["id"])
@@ -346,6 +345,27 @@ def mostrar_resultado(q, resposta):
         st.error(f"❌ Errado — correta: **{q['correta']}**) {q['opcoes'][q['correta']]}")
     with st.expander("Ver explicação", expanded=True):
         st.write(q.get("explicacao", "Sem explicação disponível."))
+
+def estatisticas():
+    total = len(st.session_state.historico)
+    acertos_n = sum(1 for h in st.session_state.historico if h["acertou"])
+    erros_n = total - acertos_n
+    taxa = (acertos_n / total * 100) if total else 0.0
+    return total, acertos_n, erros_n, taxa
+
+LABEL_ORIGEM = {"treino": "Treino livre", "revisao_erros": "Revisão de erros", "simulado": "Simulado", "prova": "Prova ANBIMA"}
+
+def escolher_questao(lista=None):
+    base = lista if lista else questoes_buscadas()
+    return random.choice(base) if base else None
+
+def filtrar_base(tema="Todos", objetivo="Todos"):
+    base = questoes_buscadas()
+    if tema != "Todos":
+        base = [q for q in base if q.get("tema") == tema]
+    if objetivo != "Todos":
+        base = [q for q in base if q.get("objetivo") == objetivo]
+    return base
 
 # -------------------------------------------------------
 # Renderização de simulado
@@ -657,13 +677,6 @@ if modo != st.session_state.modo:
     persistir_tudo()
     st.rerun()
 
-def estatisticas():
-    total = len(st.session_state.historico)
-    acertos_n = sum(1 for h in st.session_state.historico if h["acertou"])
-    erros_n = total - acertos_n
-    taxa = (acertos_n / total * 100) if total else 0.0
-    return total, acertos_n, erros_n, taxa
-
 total_h, acertos_h, erros_h, taxa_h = estatisticas()
 st.sidebar.metric("Questões respondidas", total_h)
 st.sidebar.metric("Taxa de acerto", f"{taxa_h:.1f}%")
@@ -712,7 +725,6 @@ st.sidebar.caption(f"Fonte atual: {st.session_state.fonte_atual}")
 # Modos principais
 # -------------------------------------------------------
 temas = obter_temas()
-LABEL_ORIGEM = {"treino": "Treino livre", "revisao_erros": "Revisão de erros", "simulado": "Simulado", "prova": "Prova ANBIMA"}
 
 # =======================================================
 # MODO 1 — Treino livre
@@ -880,7 +892,7 @@ elif modo == "Simulado":
                 render_simulado(nome, fonte, estado_key=nome)
 
 # =======================================================
-# MODO 4 — Prova ANBIMA (completo)
+# MODO 4 — Prova ANBIMA
 # =======================================================
 elif modo == "Prova":
     st.subheader("📝 Prova ANBIMA CGA")
