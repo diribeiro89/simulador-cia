@@ -1,4 +1,4 @@
-import streamlit as st
+ƒimport streamlitas st
 import json
 import random
 import time
@@ -784,7 +784,8 @@ if modo == "Treino livre":
 # =======================================================
 elif modo == "Revisar erros":
     st.subheader("Revisar erros (Leitner)")
-    
+
+    # Inicializa a lista de revisão (se vazia)
     if not st.session_state.revisao_lista:
         questoes_revisar = []
         hoje = datetime.now().strftime("%Y-%m-%d")
@@ -811,6 +812,7 @@ elif modo == "Revisar erros":
     total_rev = len(st.session_state.revisao_lista)
     i_rev = st.session_state.revisao_i
 
+    # Navegação
     col_prev, col_pos, col_info = st.columns([1, 1, 2])
     with col_prev:
         if st.button("◀ Anterior", disabled=(i_rev == 0), use_container_width=True):
@@ -831,24 +833,68 @@ elif modo == "Revisar erros":
     st.divider()
     card_questao(q, mostrar_destaque=True)
 
-    # Agora usa a função com radio (sem o bug de pulo)
-    resposta = render_alternativas_com_descarte(q, f"rev_{q.get('id_unico', q['id'])}_{i_rev}")
+    # --- RADIO COM DESCARTA (sem recarga ao selecionar) ---
+    qid = q.get("id_unico", q["id"])
+    descartadas = st.session_state.alternativas_descartadas.get(qid, [])
+    opcoes = list(q['opcoes'].keys())
+    
+    # Exibe alternativas riscadas e botões de restauração
+    st.markdown("**Alternativas:**")
+    # Mostra as não descartadas primeiro (no radio) e as descartadas depois (riscadas)
+    opcoes_validas = [letra for letra in opcoes if letra not in descartadas]
+    
+    # Se houver descartadas, exibe com botão de restaurar
+    if descartadas:
+        st.markdown("**Alternativas descartadas (clique em ↩️ para restaurar):**")
+        for letra in descartadas:
+            col1, col2 = st.columns([0.85, 0.15])
+            with col1:
+                st.markdown(f"~~{letra}) {q['opcoes'][letra]}~~")
+            with col2:
+                if st.button("↩️", key=f"restore_rev_{qid}_{letra}_{i_rev}"):
+                    descartadas.remove(letra)
+                    st.session_state.alternativas_descartadas[qid] = descartadas
+                    persistir_tudo()
+                    st.rerun()
+        st.divider()
 
+    # Radio para seleção (apenas opções válidas)
+    resposta_atual = st.session_state.revisao_resposta if st.session_state.revisao_respondido else None
+    default_index = None
+    if resposta_atual in opcoes_validas:
+        default_index = opcoes_validas.index(resposta_atual)
+
+    if opcoes_validas:
+        selected = st.radio(
+            "Escolha uma alternativa:",
+            opcoes_validas,
+            format_func=lambda x: f"{x}) {q['opcoes'][x]}",
+            key=f"radio_rev_{qid}_{i_rev}",
+            index=default_index,
+            disabled=st.session_state.revisao_respondido
+        )
+    else:
+        selected = None
+        st.warning("Todas as alternativas foram descartadas! Restaure alguma para responder.")
+
+    # Armazena a seleção (sem recarregar)
+    if not st.session_state.revisao_respondido and selected is not None:
+        st.session_state.revisao_resposta = selected
+
+    # Botão Responder
     if not st.session_state.revisao_respondido:
         if st.button("✅ Responder", use_container_width=True):
-            if resposta is None:
+            if st.session_state.revisao_resposta is None:
                 st.warning("Selecione uma alternativa antes de responder.")
             else:
-                st.session_state.revisao_resposta = resposta
                 st.session_state.revisao_respondido = True
-                registrar_resposta(q, resposta, "revisao_erros", salvar_imediato=True)
+                registrar_resposta(q, st.session_state.revisao_resposta, "revisao_erros", salvar_imediato=True)
                 st.rerun()
     else:
         mostrar_resultado(q, st.session_state.revisao_resposta)
         if st.button("🔄 Avançar", use_container_width=True):
             st.session_state.revisao_respondido = False
             st.session_state.revisao_resposta = None
-            # Avança para a próxima (se houver)
             if i_rev < total_rev - 1:
                 st.session_state.revisao_i += 1
             st.rerun()
@@ -1350,6 +1396,7 @@ elif modo == "Questões Destacadas":
                 st.rerun()
         st.stop()
 
+    # Navegação
     col_prev, col_pos, col_info = st.columns([1, 1, 2])
     with col_prev:
         if st.button("◀ Anterior", disabled=(i == 0), use_container_width=True):
@@ -1370,16 +1417,56 @@ elif modo == "Questões Destacadas":
     st.divider()
     card_questao(q, mostrar_objetivo=True, mostrar_destaque=True)
 
-    resposta = render_alternativas_com_descarte(q, f"dest_{q.get('id_unico', q['id'])}_{i}")
+    # --- RADIO COM DESCARTA (mesma lógica da revisão) ---
+    qid = q.get("id_unico", q["id"])
+    descartadas = st.session_state.alternativas_descartadas.get(qid, [])
+    opcoes = list(q['opcoes'].keys())
+    
+    st.markdown("**Alternativas:**")
+    opcoes_validas = [letra for letra in opcoes if letra not in descartadas]
+    
+    if descartadas:
+        st.markdown("**Alternativas descartadas (clique em ↩️ para restaurar):**")
+        for letra in descartadas:
+            col1, col2 = st.columns([0.85, 0.15])
+            with col1:
+                st.markdown(f"~~{letra}) {q['opcoes'][letra]}~~")
+            with col2:
+                if st.button("↩️", key=f"restore_dest_{qid}_{letra}_{i}"):
+                    descartadas.remove(letra)
+                    st.session_state.alternativas_descartadas[qid] = descartadas
+                    persistir_tudo()
+                    st.rerun()
+        st.divider()
+
+    resposta_atual = st.session_state.destacada_resposta if st.session_state.destacada_respondido else None
+    default_index = None
+    if resposta_atual in opcoes_validas:
+        default_index = opcoes_validas.index(resposta_atual)
+
+    if opcoes_validas:
+        selected = st.radio(
+            "Escolha uma alternativa:",
+            opcoes_validas,
+            format_func=lambda x: f"{x}) {q['opcoes'][x]}",
+            key=f"radio_dest_{qid}_{i}",
+            index=default_index,
+            disabled=st.session_state.destacada_respondido
+        )
+    else:
+        selected = None
+        st.warning("Todas as alternativas foram descartadas! Restaure alguma para responder.")
+
+    if not st.session_state.destacada_respondido and selected is not None:
+        st.session_state.destacada_resposta = selected
 
     if not st.session_state.destacada_respondido:
         if st.button("✅ Responder", use_container_width=True):
-            if resposta is None:
+            if st.session_state.destacada_resposta is None:
                 st.warning("Selecione uma alternativa antes de responder.")
             else:
-                st.session_state.destacada_resposta = resposta
                 st.session_state.destacada_respondido = True
-                registrar_resposta(q, resposta, "treino", salvar_imediato=True)
+                registrar_resposta(q, st.session_state.destacada_resposta, "treino", salvar_imediato=True)
                 st.rerun()
     else:
         mostrar_resultado(q, st.session_state.destacada_resposta)
@@ -1388,7 +1475,6 @@ elif modo == "Questões Destacadas":
             if qid in st.session_state.destacadas:
                 st.session_state.destacadas.remove(qid)
                 db.remover_destacada(qid)
-            # Remove da lista atual
             st.session_state.destacada_lista = [item for item in st.session_state.destacada_lista if item.get("id_unico", item["id"]) != qid]
             if st.session_state.destacada_i >= len(st.session_state.destacada_lista):
                 st.session_state.destacada_i = max(0, len(st.session_state.destacada_lista) - 1)
