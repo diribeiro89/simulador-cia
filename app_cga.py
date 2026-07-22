@@ -219,7 +219,6 @@ def remover_erro(q):
     persistir_tudo()
 
 def atualizar_estatistica_questao(qid, acertou):
-    # Atualiza local
     if qid not in st.session_state.estatisticas_questoes:
         st.session_state.estatisticas_questoes[qid] = {"acertos": 0, "erros": 0, "total": 0}
     if acertou:
@@ -227,14 +226,12 @@ def atualizar_estatistica_questao(qid, acertou):
     else:
         st.session_state.estatisticas_questoes[qid]["erros"] += 1
     st.session_state.estatisticas_questoes[qid]["total"] += 1
-    # Salva no banco
     db.atualizar_estatistica_questao(qid, acertou)
 
 def registrar_resposta(q, resposta, origem="treino", salvar_imediato=True):
     qid = q.get("id_unico", q["id"])
     correto = (resposta is not None) and (resposta == q["correta"])
     if origem == "revisao_erros":
-        # Leitner
         dados = st.session_state.leitner.get(qid, {'nivel': 1, 'proxima': None})
         nivel_atual = dados['nivel']
         if correto:
@@ -245,7 +242,6 @@ def registrar_resposta(q, resposta, origem="treino", salvar_imediato=True):
         proxima = (datetime.now() + timedelta(days=dias)).strftime("%Y-%m-%d")
         st.session_state.leitner[qid] = {'nivel': novo_nivel, 'proxima': proxima}
     
-    # Atualiza estatísticas
     atualizar_estatistica_questao(qid, correto)
     
     registro = {
@@ -274,7 +270,7 @@ def registrar_resposta(q, resposta, origem="treino", salvar_imediato=True):
     return correto
 
 # -------------------------------------------------------
-# UI Helpers (card, alternativas, resultado)
+# UI Helpers
 # -------------------------------------------------------
 def card_questao(q, mostrar_objetivo=True, mostrar_destaque=False):
     qid = q.get("id_unico", q["id"])
@@ -352,7 +348,7 @@ def mostrar_resultado(q, resposta):
         st.write(q.get("explicacao", "Sem explicação disponível."))
 
 # -------------------------------------------------------
-# Renderização de simulado (reutilizável)
+# Renderização de simulado
 # -------------------------------------------------------
 def render_simulado(nome_simulado, fonte_questoes, estado_key=None, is_personalizado=False):
     if is_personalizado:
@@ -370,7 +366,6 @@ def render_simulado(nome_simulado, fonte_questoes, estado_key=None, is_personali
         if not base_sim:
             st.warning(f"Nenhuma questão disponível para {nome_simulado}.")
             return
-        # Para personalizado, permite escolher tema
         if is_personalizado:
             temas_sim = ["Todos"] + sorted({q.get("tema") for q in base_sim if q.get("tema")})
             filtro_tema_sim = st.selectbox("Filtrar por tema", temas_sim, key=f"filtro_tema_personalizado")
@@ -382,7 +377,7 @@ def render_simulado(nome_simulado, fonte_questoes, estado_key=None, is_personali
         col1, col2 = st.columns(2)
         max_qtd = len(base_sim)
         qtd = col1.number_input(
-            f"Quantidade de questões",
+            "Quantidade de questões",
             min_value=5, max_value=max_qtd, value=min(max_qtd, 45), step=5,
             key=f"qtd_{nome_simulado}_{estado_key if estado_key else ''}"
         )
@@ -392,7 +387,7 @@ def render_simulado(nome_simulado, fonte_questoes, estado_key=None, is_personali
             key=f"dur_{nome_simulado}_{estado_key if estado_key else ''}"
         )
         st.info(f"📋 **{int(qtd)} questões** &nbsp;|&nbsp; ⏱️ **{int(duracao)} min** &nbsp;|&nbsp; Base disponível: **{len(base_sim)} questões**")
-        if st.button(f"🚀 Iniciar", use_container_width=True, key=f"iniciar_{nome_simulado}_{estado_key if estado_key else ''}"):
+        if st.button("🚀 Iniciar", use_container_width=True, key=f"iniciar_{nome_simulado}_{estado_key if estado_key else ''}"):
             qtd_real = int(min(qtd, len(base_sim)))
             selecionadas = random.sample(base_sim, qtd_real)
             estado["questoes"] = selecionadas
@@ -409,7 +404,6 @@ def render_simulado(nome_simulado, fonte_questoes, estado_key=None, is_personali
             st.rerun()
         return
 
-    # Ativo
     if estado["ativo"]:
         elapsed = time.time() - estado["inicio"]
         restante = max(0.0, estado["duracao_min"] * 60 - elapsed)
@@ -418,7 +412,6 @@ def render_simulado(nome_simulado, fonte_questoes, estado_key=None, is_personali
             estado["ativo"] = False
             estado["finalizado"] = True
             st.session_state.em_simulado = False
-            # Salvar pendentes
             for reg in st.session_state.respostas_pendentes:
                 registrar_resposta(reg["q"], reg["resp"], origem="simulado", salvar_imediato=False)
             st.session_state.respostas_pendentes = []
@@ -486,7 +479,6 @@ def render_simulado(nome_simulado, fonte_questoes, estado_key=None, is_personali
             st.warning(f"Você ainda tem **{nao_resp_n}** questão(ões) sem resposta. Confirme para encerrar ou navegue para respondê-las.")
         return
 
-    # Finalizado
     if estado["finalizado"]:
         questoes = estado["questoes"]
         respostas = estado["respostas"]
@@ -550,9 +542,6 @@ def render_simulado(nome_simulado, fonte_questoes, estado_key=None, is_personali
             st.session_state.respostas_pendentes = []
             st.rerun()
 
-# -------------------------------------------------------
-# Salvar histórico do simulado (detalhado)
-# -------------------------------------------------------
 def salvar_historico_simulado(estado, nome_simulado):
     questoes = estado["questoes"]
     respostas = estado["respostas"]
@@ -560,7 +549,6 @@ def salvar_historico_simulado(estado, nome_simulado):
     total = len(questoes)
     nao_resp = sum(1 for q in questoes if respostas.get(q.get("id_unico", q["id"])) is None)
     tempo = int(time.time() - estado["inicio"])
-    # Prepara detalhes
     detalhes = []
     for q in questoes:
         qid = q.get("id_unico", q["id"])
@@ -572,7 +560,6 @@ def salvar_historico_simulado(estado, nome_simulado):
             'codigo': q["codigo"],
             'fonte': q.get("fonte", ""),
         })
-    # Salva
     db.salvar_simulado_historico({
         'data': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         'fonte': nome_simulado,
@@ -670,6 +657,13 @@ if modo != st.session_state.modo:
     persistir_tudo()
     st.rerun()
 
+def estatisticas():
+    total = len(st.session_state.historico)
+    acertos_n = sum(1 for h in st.session_state.historico if h["acertou"])
+    erros_n = total - acertos_n
+    taxa = (acertos_n / total * 100) if total else 0.0
+    return total, acertos_n, erros_n, taxa
+
 total_h, acertos_h, erros_h, taxa_h = estatisticas()
 st.sidebar.metric("Questões respondidas", total_h)
 st.sidebar.metric("Taxa de acerto", f"{taxa_h:.1f}%")
@@ -715,17 +709,9 @@ st.sidebar.divider()
 st.sidebar.caption(f"Fonte atual: {st.session_state.fonte_atual}")
 
 # -------------------------------------------------------
-# Modos principais (Treino, Revisão, Simulado, Prova, etc.)
+# Modos principais
 # -------------------------------------------------------
 temas = obter_temas()
-
-def estatisticas():
-    total = len(st.session_state.historico)
-    acertos_n = sum(1 for h in st.session_state.historico if h["acertou"])
-    erros_n = total - acertos_n
-    taxa = (acertos_n / total * 100) if total else 0.0
-    return total, acertos_n, erros_n, taxa
-
 LABEL_ORIGEM = {"treino": "Treino livre", "revisao_erros": "Revisão de erros", "simulado": "Simulado", "prova": "Prova ANBIMA"}
 
 # =======================================================
@@ -861,7 +847,6 @@ elif modo == "Simulado":
                     questoes_combinadas.extend(f)
                 render_simulado(nome, questoes_combinadas, estado_key="aleatorio")
             elif nome == "Personalizado":
-                # Escolha da fonte (inclui Banco Principal)
                 fontes_personalizado = {nome: lista for nome, lista in bancos.items()}
                 fonte_escolhida = st.selectbox("Fonte para o simulado personalizado", list(fontes_personalizado.keys()), key="fonte_personalizado")
                 render_simulado("Personalizado", fontes_personalizado[fonte_escolhida], is_personalizado=True)
@@ -870,9 +855,7 @@ elif modo == "Simulado":
                 if not historico:
                     st.info("Nenhum simulado finalizado ainda.")
                 else:
-                    # Exibe cabeçalho
                     st.metric("Total de simulados", len(historico))
-                    # Tabela resumo
                     df_hist = pd.DataFrame(historico)
                     df_hist["data"] = pd.to_datetime(df_hist["data"])
                     df_hist["taxa"] = (df_hist["acertos"] / df_hist["total_questoes"] * 100).round(1)
@@ -883,7 +866,6 @@ elif modo == "Simulado":
                     )
                     if len(historico) > 1:
                         st.line_chart(df_hist.set_index("data")["taxa"])
-                    # Detalhes de cada simulado (expansível)
                     for item in historico:
                         with st.expander(f"📅 {item['data']} - {item['fonte']} ({item['acertos']}/{item['total_questoes']})"):
                             detalhes = db.carregar_simulado_detalhes(item['id'])
@@ -894,7 +876,6 @@ elif modo == "Simulado":
                             else:
                                 st.info("Detalhes não disponíveis.")
             else:
-                # Simulado 1-4
                 fonte = bancos.get(nome, [])
                 render_simulado(nome, fonte, estado_key=nome)
 
@@ -1380,16 +1361,12 @@ elif modo == "Questões Destacadas":
             else:
                 st.session_state.destacada_resposta = selected
                 st.session_state.destacada_respondido = True
-                # Não registra no histórico geral, apenas mostra o resultado
                 st.rerun()
     else:
         mostrar_resultado(q, st.session_state.destacada_resposta)
         if st.button("⭐ Remover destaque", use_container_width=True):
-            qid = q.get("id_unico", q["id"])
-            if qid in st.session_state.destacadas:
-                st.session_state.destacadas.remove(qid)
-                db.remover_destacada(qid)
-            st.session_state.destacada_lista = [item for item in st.session_state.destacada_lista if item.get("id_unico", item["id"]) != qid]
+            toggle_destaque(q.get("id_unico", q["id"]))
+            st.session_state.destacada_lista = [item for item in st.session_state.destacada_lista if item.get("id_unico", item["id"]) != q.get("id_unico", q["id"])]
             if st.session_state.destacada_i >= len(st.session_state.destacada_lista):
                 st.session_state.destacada_i = max(0, len(st.session_state.destacada_lista) - 1)
             st.session_state.destacada_respondido = False
@@ -1439,7 +1416,8 @@ elif modo == "Buscar Questão":
                 else:
                     st.session_state.busca_resposta = resposta
                     st.session_state.busca_respondido = True
-                    registrar_resposta(q, resposta, "treino", salvar_imediato=True)
+                    registrar_resposta(q, resposta, "treino")
+                    persistir_tudo()
                     st.rerun()
         else:
             mostrar_resultado(q, st.session_state.busca_resposta)
@@ -1465,80 +1443,43 @@ elif modo == "Dashboard":
     df["acertou_num"] = df["acertou"].astype(int)
     st.divider()
     st.markdown("### Desempenho por modo de estudo")
-    por_origem = (
-        df.groupby("origem")
-        .agg(total=("acertou_num", "count"), acertos=("acertou_num", "sum"))
-        .reset_index()
-    )
+    por_origem = df.groupby("origem").agg(total=("acertou_num", "count"), acertos=("acertou_num", "sum")).reset_index()
     por_origem["Taxa (%)"] = (por_origem["acertos"] / por_origem["total"] * 100).round(1)
     for _, row in por_origem.iterrows():
         label = LABEL_ORIGEM.get(row["origem"], row["origem"])
-        st.progress(row["Taxa (%)"] / 100, text=f"{label}: {row['Taxa (%)']:.1f}% ({row['acertos']}/{row['total']})")
+        st.progress(row["Taxa (%)"]/100, text=f"{label}: {row['Taxa (%)']:.1f}% ({row['acertos']}/{row['total']})")
     st.divider()
     st.markdown("### Desempenho por tema")
-    tema_df = (
-        df.groupby("tema", dropna=False)
-        .agg(total=("acertou_num", "count"), acertos=("acertou_num", "sum"))
-        .reset_index()
-    )
+    tema_df = df.groupby("tema", dropna=False).agg(total=("acertou_num", "count"), acertos=("acertou_num", "sum")).reset_index()
     tema_df["tema"] = tema_df["tema"].fillna("Sem tema")
     tema_df["Taxa (%)"] = (tema_df["acertos"] / tema_df["total"] * 100).round(1)
     tema_df = tema_df.sort_values("Taxa (%)", ascending=False)
     st.bar_chart(tema_df.set_index("tema")["Taxa (%)"])
     with st.expander("📊 Tabela detalhada por tema"):
-        st.dataframe(
-            tema_df[["tema", "Taxa (%)", "acertos", "total"]]
-            .rename(columns={"tema": "Tema", "acertos": "Acertos", "total": "Total"})
-            .style.format({"Taxa (%)": "{:.1f}"}),
-            use_container_width=True
-        )
+        st.dataframe(tema_df[["tema", "Taxa (%)", "acertos", "total"]].rename(columns={"tema":"Tema","acertos":"Acertos","total":"Total"}).style.format({"Taxa (%)":"{:.1f}"}), use_container_width=True)
     st.divider()
     st.markdown("### Desempenho por fonte")
-    fonte_df = (
-        df.groupby("fonte", dropna=False)
-        .agg(total=("acertou_num", "count"), acertos=("acertou_num", "sum"))
-        .reset_index()
-    )
+    fonte_df = df.groupby("fonte", dropna=False).agg(total=("acertou_num", "count"), acertos=("acertou_num", "sum")).reset_index()
     fonte_df["fonte"] = fonte_df["fonte"].fillna("Sem fonte")
     fonte_df["Taxa (%)"] = (fonte_df["acertos"] / fonte_df["total"] * 100).round(1)
     fonte_df = fonte_df.sort_values("Taxa (%)", ascending=False)
     st.bar_chart(fonte_df.set_index("fonte")["Taxa (%)"])
     with st.expander("📊 Tabela detalhada por fonte"):
-        st.dataframe(
-            fonte_df[["fonte", "Taxa (%)", "acertos", "total"]]
-            .rename(columns={"fonte": "Fonte", "acertos": "Acertos", "total": "Total"})
-            .style.format({"Taxa (%)": "{:.1f}"}),
-            use_container_width=True
-        )
+        st.dataframe(fonte_df[["fonte", "Taxa (%)", "acertos", "total"]].rename(columns={"fonte":"Fonte","acertos":"Acertos","total":"Total"}).style.format({"Taxa (%)":"{:.1f}"}), use_container_width=True)
     st.divider()
     st.markdown("### Desempenho por objetivo")
-    obj_df = (
-        df.groupby("objetivo", dropna=False)
-        .agg(total=("acertou_num", "count"), acertos=("acertou_num", "sum"))
-        .reset_index()
-    )
+    obj_df = df.groupby("objetivo", dropna=False).agg(total=("acertou_num", "count"), acertos=("acertou_num", "sum")).reset_index()
     obj_df["objetivo"] = obj_df["objetivo"].fillna("Sem objetivo")
     obj_df["Taxa (%)"] = (obj_df["acertos"] / obj_df["total"] * 100).round(1)
     obj_df = obj_df.sort_values("Taxa (%)", ascending=False)
-    obj_df["Objetivo curto"] = obj_df["objetivo"].apply(lambda x: (x[:57] + "...") if len(x) > 60 else x)
+    obj_df["Objetivo curto"] = obj_df["objetivo"].apply(lambda x: (x[:57]+"...") if len(x)>60 else x)
     st.bar_chart(obj_df.set_index("Objetivo curto")["Taxa (%)"])
     with st.expander("📊 Tabela detalhada por objetivo"):
-        st.dataframe(
-            obj_df[["objetivo", "Taxa (%)", "acertos", "total"]]
-            .rename(columns={"objetivo": "Objetivo", "acertos": "Acertos", "total": "Total"})
-            .style.format({"Taxa (%)": "{:.1f}"}),
-            use_container_width=True
-        )
+        st.dataframe(obj_df[["objetivo", "Taxa (%)", "acertos", "total"]].rename(columns={"objetivo":"Objetivo","acertos":"Acertos","total":"Total"}).style.format({"Taxa (%)":"{:.1f}"}), use_container_width=True)
     st.divider()
     if len(st.session_state.historico) >= 5:
         st.markdown("### Evolução da taxa de acerto — média móvel (janela 10)")
-        df["media_movel"] = (
-            df["acertou_num"]
-            .rolling(window=10, min_periods=1)
-            .mean()
-            .mul(100)
-            .round(1)
-        )
+        df["media_movel"] = df["acertou_num"].rolling(window=10, min_periods=1).mean().mul(100).round(1)
         df.index.name = "Questão #"
         st.line_chart(df["media_movel"])
     st.divider()
@@ -1550,45 +1491,4 @@ elif modo == "Dashboard":
         tema_label = h.get("tema") or "—"
         num = h.get("numero_original") or h["id"]
         fonte_label = h.get("fonte", "")
-        st.write(
-            f"{icon} **{tema_label}** | Q{num} — {h['codigo']} "
-            f"{f'({fonte_label})' if fonte_label else ''} | "
-            f"Marcada: **{resp}** | Correta: **{h['correta']}** | "
-            f"_{origem_label}_"
-        )
-    # ---- Estatísticas por questão ----
-    st.divider()
-    st.markdown("### 📊 Estatísticas por Questão")
-    if st.session_state.estatisticas_questoes:
-        # Monta uma tabela com código, tema, acertos, erros, total
-        # Para isso, precisa mapear o id_unico para o código e tema
-        mapa_id_para_dados = {}
-        for lista in bancos.values():
-            for q in lista:
-                qid = q.get("id_unico", q["id"])
-                mapa_id_para_dados[qid] = {"codigo": q["codigo"], "tema": q.get("tema", "")}
-        dados_tabela = []
-        for qid, stats in st.session_state.estatisticas_questoes.items():
-            info = mapa_id_para_dados.get(qid, {})
-            dados_tabela.append({
-                "Código": info.get("codigo", qid),
-                "Tema": info.get("tema", ""),
-                "Acertos": stats["acertos"],
-                "Erros": stats["erros"],
-                "Total": stats["total"],
-                "Taxa": f"{stats['acertos']/stats['total']*100:.1f}%" if stats["total"] > 0 else "0%"
-            })
-        if dados_tabela:
-            df_quest = pd.DataFrame(dados_tabela)
-            # Ordena por taxa crescente (mais difíceis primeiro)
-            df_quest["taxa_num"] = df_quest["Acertos"] / df_quest["Total"]
-            df_quest = df_quest.sort_values("taxa_num", ascending=True)
-            st.dataframe(
-                df_quest[["Código", "Tema", "Acertos", "Erros", "Total", "Taxa"]],
-                use_container_width=True,
-                hide_index=True,
-            )
-        else:
-            st.info("Nenhuma estatística disponível ainda.")
-    else:
-        st.info("Nenhuma estatística disponível ainda.")
+        st.write(f"{icon} **{tema_label}** | Q{num} — {h['codigo']} {f'({fonte_label})' if fonte_label else ''} | Marcada: **{resp}** | Correta: **{h['correta']}** | _{origem_label}_")
