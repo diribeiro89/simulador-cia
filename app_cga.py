@@ -785,7 +785,8 @@ if modo == "Treino livre":
 elif modo == "Revisar erros":
     st.subheader("Revisar erros (Leitner)")
     
-    if not st.session_state.revisao_lista:
+    if not st.session_state.revisao_iniciado:
+        # Inicializa a lista uma única vez
         questoes_revisar = []
         hoje = datetime.now().strftime("%Y-%m-%d")
         for qid, dados in st.session_state.leitner.items():
@@ -799,27 +800,31 @@ elif modo == "Revisar erros":
             st.session_state.revisao_lista = [mapa[qid] for qid in questoes_revisar if qid in mapa]
         else:
             st.session_state.revisao_lista = st.session_state.erros.copy()
-        random.shuffle(st.session_state.revisao_lista)
+        if st.session_state.revisao_lista:
+            random.shuffle(st.session_state.revisao_lista)
         st.session_state.revisao_i = 0
         st.session_state.revisao_respondido = False
         st.session_state.revisao_resposta = None
+        st.session_state.revisao_iniciado = True
 
     if not st.session_state.revisao_lista:
         st.info("Você não tem erros salvos ou agendados para revisar.")
+        # Permite reiniciar a revisão
+        if st.button("🔄 Reiniciar revisão", use_container_width=True):
+            st.session_state.revisao_iniciado = False
+            st.rerun()
         st.stop()
 
     total_rev = len(st.session_state.revisao_lista)
     i_rev = st.session_state.revisao_i
 
-    # --- REMOVIDOS OS BOTÕES "Anterior" e "Próxima" ---
-    # Apenas mostra a progressão
+    # Navegação (remove a navegação para evitar conflitos)
     st.caption(f"Questão {i_rev + 1} de {total_rev}")
 
     q = st.session_state.revisao_lista[i_rev]
     st.divider()
     card_questao(q, mostrar_destaque=True)
 
-    # Usa a função original (com botões) – MAS SEM OS BOTÕES DE NAVEGAÇÃO
     resposta = render_alternativas_com_descarte(q, f"rev_{q.get('id_unico', q['id'])}_{i_rev}")
 
     if not st.session_state.revisao_respondido:
@@ -833,16 +838,24 @@ elif modo == "Revisar erros":
                 st.rerun()
     else:
         mostrar_resultado(q, st.session_state.revisao_resposta)
-        # Único botão para avançar
-        if st.button("➡️ Próxima questão", use_container_width=True):
-            if i_rev + 1 < total_rev:
-                st.session_state.revisao_i += 1
-            else:
-                st.session_state.revisao_concluida = True
-                st.session_state.revisao_lista = []
-            st.session_state.revisao_respondido = False
-            st.session_state.revisao_resposta = None
-            st.rerun()
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("➡️ Próxima questão", use_container_width=True):
+                if i_rev + 1 < total_rev:
+                    st.session_state.revisao_i += 1
+                else:
+                    st.session_state.revisao_concluida = True
+                    st.session_state.revisao_lista = []
+                    st.session_state.revisao_iniciado = False
+                st.session_state.revisao_respondido = False
+                st.session_state.revisao_resposta = None
+                st.rerun()
+        with col2:
+            if st.button("🔄 Reiniciar", use_container_width=True):
+                st.session_state.revisao_iniciado = False
+                st.session_state.revisao_respondido = False
+                st.session_state.revisao_resposta = None
+                st.rerun()
 
 # =======================================================
 # MODO 3 — Simulado (com abas)
