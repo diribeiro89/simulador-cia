@@ -249,3 +249,99 @@ def carregar_simulados_historico():
 
 def limpar_simulados_historico():
     supabase.table("simulados_historico").delete().neq("id", 0).execute()
+
+# ========================================
+# ESTATÍSTICAS POR QUESTÃO
+# ========================================
+def atualizar_estatistica_questao(questao_id, acertou):
+    """Incrementa acertos ou erros para uma questão."""
+    # Busca registro existente
+    response = supabase.table("estatisticas_questoes").select("*").eq("questao_id", questao_id).execute()
+    if response.data:
+        registro = response.data[0]
+        novos_dados = {
+            "acertos": registro["acertos"] + (1 if acertou else 0),
+            "erros": registro["erros"] + (0 if acertou else 1),
+            "total": registro["total"] + 1
+        }
+        supabase.table("estatisticas_questoes").update(novos_dados).eq("questao_id", questao_id).execute()
+    else:
+        supabase.table("estatisticas_questoes").insert({
+            "questao_id": questao_id,
+            "acertos": 1 if acertou else 0,
+            "erros": 0 if acertou else 1,
+            "total": 1
+        }).execute()
+
+def carregar_estatisticas_questoes():
+    response = supabase.table("estatisticas_questoes").select("*").execute()
+    dados = {}
+    for row in response.data:
+        dados[row["questao_id"]] = {"acertos": row["acertos"], "erros": row["erros"], "total": row["total"]}
+    return dados
+
+# ========================================
+# HISTÓRICO DE SIMULADOS (detalhado)
+# ========================================
+def salvar_simulado_historico(historico_data, respostas_detalhadas):
+    """
+    historico_data: dict com data, fonte, total_questoes, acertos, nao_respondidas, tempo_segundos
+    respostas_detalhadas: lista de dict com questao_id, resposta, correta, tema, codigo, fonte
+    """
+    # Insere o cabeçalho
+    response = supabase.table("simulados_historico").insert({
+        "data": historico_data['data'],
+        "fonte": historico_data['fonte'],
+        "total_questoes": historico_data['total_questoes'],
+        "acertos": historico_data['acertos'],
+        "nao_respondidas": historico_data['nao_respondidas'],
+        "tempo_segundos": historico_data['tempo_segundos'],
+        "questoes_ids": json.dumps([r['questao_id'] for r in respostas_detalhadas])
+    }).execute()
+    sim_id = response.data[0]['id']
+    
+    # Insere as respostas detalhadas em uma tabela separada
+    for resp in respostas_detalhadas:
+        supabase.table("simulados_detalhes").insert({
+            "simulado_id": sim_id,
+            "questao_id": resp['questao_id'],
+            "resposta": resp['resposta'],
+            "correta": resp['correta'],
+            "tema": resp['tema'],
+            "codigo": resp['codigo'],
+            "fonte": resp['fonte']
+        }).execute()
+
+def carregar_simulados_historico():
+    response = supabase.table("simulados_historico").select("*").order("id", desc=True).execute()
+    historico = []
+    for row in response.data:
+        historico.append({
+            'id': row['id'],
+            'data': row['data'],
+            'fonte': row['fonte'],
+            'total_questoes': row['total_questoes'],
+            'acertos': row['acertos'],
+            'nao_respondidas': row['nao_respondidas'],
+            'tempo_segundos': row['tempo_segundos'],
+            'questoes_ids': json.loads(row['questoes_ids']) if row['questoes_ids'] else []
+        })
+    return historico
+
+def carregar_simulado_detalhes(simulado_id):
+    response = supabase.table("simulados_detalhes").select("*").eq("simulado_id", simulado_id).execute()
+    detalhes = []
+    for row in response.data:
+        detalhes.append({
+            'questao_id': row['questao_id'],
+            'resposta': row['resposta'],
+            'correta': row['correta'],
+            'tema': row['tema'],
+            'codigo': row['codigo'],
+            'fonte': row['fonte']
+        })
+    return detalhes
+
+def limpar_simulados_historico():
+    supabase.table("simulados_detalhes").delete().neq("id", 0).execute()
+    supabase.table("simulados_historico").delete().neq("id", 0).execute()
