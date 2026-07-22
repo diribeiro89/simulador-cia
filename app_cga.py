@@ -780,13 +780,11 @@ if modo == "Treino livre":
             st.rerun()
 
 # =======================================================
-# MODO 2 — Revisar erros (com botões e descarte)
+# MODO 2 — Revisar erros
 # =======================================================
 elif modo == "Revisar erros":
     st.subheader("Revisar erros (Leitner)")
-    
-    if not st.session_state.revisao_iniciado:
-        # Inicializa a lista uma única vez
+    if not st.session_state.revisao_lista:
         questoes_revisar = []
         hoje = datetime.now().strftime("%Y-%m-%d")
         for qid, dados in st.session_state.leitner.items():
@@ -800,33 +798,34 @@ elif modo == "Revisar erros":
             st.session_state.revisao_lista = [mapa[qid] for qid in questoes_revisar if qid in mapa]
         else:
             st.session_state.revisao_lista = st.session_state.erros.copy()
-        if st.session_state.revisao_lista:
-            random.shuffle(st.session_state.revisao_lista)
+        random.shuffle(st.session_state.revisao_lista)
         st.session_state.revisao_i = 0
         st.session_state.revisao_respondido = False
         st.session_state.revisao_resposta = None
-        st.session_state.revisao_iniciado = True
-
     if not st.session_state.revisao_lista:
         st.info("Você não tem erros salvos ou agendados para revisar.")
-        # Permite reiniciar a revisão
-        if st.button("🔄 Reiniciar revisão", use_container_width=True):
-            st.session_state.revisao_iniciado = False
-            st.rerun()
         st.stop()
-
     total_rev = len(st.session_state.revisao_lista)
     i_rev = st.session_state.revisao_i
-
-    # Navegação (remove a navegação para evitar conflitos)
-    st.caption(f"Questão {i_rev + 1} de {total_rev}")
-
+    col_prev, col_pos, col_info = st.columns([1, 1, 2])
+    with col_prev:
+        if st.button("◀ Anterior", disabled=(i_rev == 0), use_container_width=True):
+            st.session_state.revisao_i -= 1
+            st.session_state.revisao_respondido = False
+            st.session_state.revisao_resposta = None
+            st.rerun()
+    with col_pos:
+        if st.button("Próxima ▶", disabled=(i_rev >= total_rev - 1), use_container_width=True):
+            st.session_state.revisao_i += 1
+            st.session_state.revisao_respondido = False
+            st.session_state.revisao_resposta = None
+            st.rerun()
+    with col_info:
+        st.caption(f"Questão {i_rev + 1} de {total_rev}")
     q = st.session_state.revisao_lista[i_rev]
     st.divider()
     card_questao(q, mostrar_destaque=True)
-
     resposta = render_alternativas_com_descarte(q, f"rev_{q.get('id_unico', q['id'])}_{i_rev}")
-
     if not st.session_state.revisao_respondido:
         if st.button("✅ Responder", use_container_width=True):
             if resposta is None:
@@ -838,24 +837,10 @@ elif modo == "Revisar erros":
                 st.rerun()
     else:
         mostrar_resultado(q, st.session_state.revisao_resposta)
-        col1, col2 = st.columns(2)
-        with col1:
-            if st.button("➡️ Próxima questão", use_container_width=True):
-                if i_rev + 1 < total_rev:
-                    st.session_state.revisao_i += 1
-                else:
-                    st.session_state.revisao_concluida = True
-                    st.session_state.revisao_lista = []
-                    st.session_state.revisao_iniciado = False
-                st.session_state.revisao_respondido = False
-                st.session_state.revisao_resposta = None
-                st.rerun()
-        with col2:
-            if st.button("🔄 Reiniciar", use_container_width=True):
-                st.session_state.revisao_iniciado = False
-                st.session_state.revisao_respondido = False
-                st.session_state.revisao_resposta = None
-                st.rerun()
+        if st.button("🔄 Avançar", use_container_width=True):
+            st.session_state.revisao_respondido = False
+            st.session_state.revisao_resposta = None
+            st.rerun()
 
 # =======================================================
 # MODO 3 — Simulado (com abas)
