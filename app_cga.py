@@ -899,17 +899,19 @@ elif modo == "Simulado":
                 render_simulado(nome, fonte, estado_key=nome)
 
 # =======================================================
-# MODO 4 — Prova ANBIMA
+# MODO 4 — Prova ANBIMA (completo)
 # =======================================================
 elif modo == "Prova":
     st.subheader("📝 Prova ANBIMA CGA")
     st.caption(f"{TOTAL_QUESTOES_PROVA} questões | 2h30 | Proporções oficiais")
+    
     if not st.session_state.prova_ativo and not st.session_state.prova_finalizado:
         base_prova = bancos.get("Banco Principal", [])
         if not base_prova:
             st.warning("Banco Principal vazio. Não é possível gerar a prova.")
             st.stop()
         distribuicao = distribuir_questoes(TOTAL_QUESTOES_PROVA, GRUPOS_PROVA)
+        
         st.info("**Distribuição das questões:**")
         grupos_dict = {}
         for item in distribuicao:
@@ -919,12 +921,13 @@ elif modo == "Prova":
             grupos_dict[grupo].append((item["tema_json"], item["quantidade"]))
         for grupo, temas in grupos_dict.items():
             if len(temas) == 1:
-                st.write(f"- {grupo}: {temas[0][1]} questões ({temas[0][0]})")
+                tema, qtd = temas[0]
+                st.write(f"- {grupo}: {qtd} questões ({tema})")
             else:
                 st.write(f"- {grupo}:")
                 for tema, qtd in temas:
                     st.write(f"    - {tema}: {qtd} questões")
-        # Verifica disponibilidade
+        
         faltam = False
         for item in distribuicao:
             tema_json = item["tema_json"]
@@ -936,6 +939,7 @@ elif modo == "Prova":
         if faltam:
             st.warning("Não há questões suficientes para montar a prova. Adicione mais questões ao banco principal.")
             st.stop()
+        
         if st.button("🚀 Iniciar Prova", use_container_width=True):
             questoes_prova = []
             grupo_por_questao = {}
@@ -949,6 +953,7 @@ elif modo == "Prova":
                     grupo_por_questao[q.get("id_unico", q["id"])] = grupo_nome
                 questoes_prova.extend(amostra)
             random.shuffle(questoes_prova)
+            
             st.session_state.prova_questoes = questoes_prova
             st.session_state.prova_respostas = {}
             st.session_state.prova_grupo_por_questao = grupo_por_questao
@@ -961,6 +966,7 @@ elif modo == "Prova":
             st.session_state.prova_duracao_min = TEMPO_PROVA_MIN
             persistir_tudo()
             st.rerun()
+    
     if st.session_state.prova_ativo:
         elapsed = time.time() - st.session_state.inicio_prova
         restante = max(0.0, st.session_state.prova_duracao_min * 60 - elapsed)
@@ -968,18 +974,43 @@ elif modo == "Prova":
             st.warning("⏰ Tempo encerrado. Finalizando automaticamente.")
             st.session_state.prova_ativo = False
             st.session_state.prova_finalizado = True
+            # Salvar respostas pendentes
+            for q_item in st.session_state.prova_questoes:
+                registrar_resposta(q_item, st.session_state.prova_respostas.get(q_item.get("id_unico", q_item["id"])), "prova", salvar_imediato=False)
             persistir_tudo()
+            # Salvar prova
+            duracao = int(time.time() - st.session_state.inicio_prova)
+            respostas_prova = []
+            for q_item in st.session_state.prova_questoes:
+                respostas_prova.append({
+                    'questao_id': q_item.get("id_unico", q_item["id"]),
+                    'tema': q_item.get('tema', ''),
+                    'codigo': q_item['codigo'],
+                    'modulo': st.session_state.prova_grupo_por_questao.get(q_item.get("id_unico", q_item["id"]), 'Outros'),
+                    'resposta': st.session_state.prova_respostas.get(q_item.get("id_unico", q_item["id"])),
+                    'correta': q_item['correta']
+                })
+            prova_data = {
+                'data': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                'duracao_segundos': duracao,
+                'total_questoes': len(st.session_state.prova_questoes),
+                'total_acertos': sum(1 for q in st.session_state.prova_questoes if st.session_state.prova_respostas.get(q.get("id_unico", q["id"])) == q["correta"])
+            }
+            db.salvar_prova(prova_data, respostas_prova)
             st.rerun()
+        
         min_rest = int(restante // 60)
         seg_rest = int(restante % 60)
         prov = st.session_state.prova_questoes
         i = st.session_state.prova_i
         q = prov[i]
+        
         col_timer, col_prog = st.columns([1, 3])
         col_timer.metric("⏱️ Tempo restante", f"{min_rest:02d}:{seg_rest:02d}")
         with col_prog:
             respondidas_n = len(st.session_state.prova_respostas)
             st.progress((i + 1) / len(prov), text=f"Questão {i+1} de {len(prov)} | {respondidas_n} respondidas")
+        
         # Mapa de questões
         with st.expander("🗺️ Mapa de Questões", expanded=False):
             grupos = {}
@@ -1005,7 +1036,6 @@ elif modo == "Prova":
                             btn_style = f"background-color:{color}; color:white;" if is_respondida else f"background-color:#ffcccc; color:black;"
                             if is_atual:
                                 btn_style += " border:3px solid yellow;"
-                            # Usa link para recarregar com parâmetro (já implementado no início)
                             cols[k].markdown(
                                 f"""
                                 <button style="{btn_style} padding:5px 10px; border-radius:5px; border:none; cursor:pointer;" 
@@ -1016,12 +1046,14 @@ elif modo == "Prova":
                                 unsafe_allow_html=True
                             )
                     st.divider()
+        
         st.divider()
         card_questao(q, mostrar_objetivo=False, mostrar_destaque=True)
         resposta_prova = render_alternativas_com_descarte(q, f"prova_{q.get('id_unico', q['id'])}_{i}")
         if resposta_prova is not None:
             st.session_state.prova_respostas[q.get("id_unico", q["id"])] = resposta_prova
             persistir_tudo()
+        
         st.divider()
         col1, col2, col3 = st.columns(3)
         with col1:
@@ -1046,11 +1078,9 @@ elif modo == "Prova":
                     else:
                         st.session_state.prova_ativo = False
                         st.session_state.prova_finalizado = True
-                        # Registrar respostas no histórico
                         for q_item in prov:
                             registrar_resposta(q_item, st.session_state.prova_respostas.get(q_item.get("id_unico", q_item["id"])), "prova", salvar_imediato=False)
                         persistir_tudo()
-                        # Salvar prova detalhada (já existe função)
                         duracao = int(time.time() - st.session_state.inicio_prova)
                         respostas_prova = []
                         for q_item in prov:
@@ -1075,7 +1105,6 @@ elif modo == "Prova":
                     st.session_state.prova_ativo = False
                     st.session_state.prova_finalizado = True
                     st.session_state.confirmar_finalizar = False
-                    # Registrar respostas e salvar prova (mesmo código acima)
                     for q_item in prov:
                         registrar_resposta(q_item, st.session_state.prova_respostas.get(q_item.get("id_unico", q_item["id"])), "prova", salvar_imediato=False)
                     persistir_tudo()
@@ -1098,13 +1127,126 @@ elif modo == "Prova":
                     }
                     db.salvar_prova(prova_data, respostas_prova)
                     st.rerun()
+        
         if st.session_state.confirmar_finalizar:
             st.warning(f"Você ainda tem **{nao_resp_n}** questão(ões) sem resposta. Confirme para encerrar ou navegue para respondê-las.")
+    
     if st.session_state.prova_finalizado:
-        # Exibe resultado (código similar ao já existente, mas omitido por brevidade)
-        st.success("Prova finalizada. Veja o relatório abaixo.")
-        # (O restante do código de resultado da prova está disponível na versão anterior; mantenha-o.)
-        # Como o limite de caracteres está alto, estou suprimindo, mas você pode manter o mesmo código anterior.
+        prov = st.session_state.prova_questoes
+        respostas = st.session_state.prova_respostas
+        grupo_por_questao = st.session_state.prova_grupo_por_questao
+        
+        if not st.session_state.prova_registrado:
+            st.session_state.prova_registrado = True
+            persistir_tudo()
+        
+        acertos_prov = sum(1 for q_item in prov if respostas.get(q_item.get("id_unico", q_item["id"])) == q_item["correta"])
+        total_prov = len(prov)
+        nao_resp = sum(1 for q_item in prov if respostas.get(q_item.get("id_unico", q_item["id"])) is None)
+        taxa_prov = acertos_prov / total_prov * 100 if total_prov else 0.0
+        
+        st.success("✅ Prova finalizada!")
+        c1, c2, c3 = st.columns(3)
+        c1.metric("Acertos", f"{acertos_prov}/{total_prov}")
+        c2.metric("Taxa de acerto", f"{taxa_prov:.1f}%")
+        c3.metric("Não respondidas", nao_resp)
+        st.progress(taxa_prov / 100, text=f"Aproveitamento: {taxa_prov:.1f}%")
+        
+        st.divider()
+        st.markdown("### 📊 RELATÓRIO DETALHADO POR MÓDULO")
+        
+        grupos_ids = {}
+        for q_item in prov:
+            grupo = grupo_por_questao.get(q_item.get("id_unico", q_item["id"]), "Outros")
+            if grupo not in grupos_ids:
+                grupos_ids[grupo] = []
+            grupos_ids[grupo].append(q_item.get("id_unico", q_item["id"]))
+        
+        ordem_grupos = [g["nome"] for g in GRUPOS_PROVA]
+        if "Outros" in grupos_ids and "Outros" not in ordem_grupos:
+            ordem_grupos.append("Outros")
+        
+        dados_tabela = []
+        for grupo in ordem_grupos:
+            if grupo not in grupos_ids:
+                continue
+            ids_questoes = grupos_ids[grupo]
+            total = len(ids_questoes)
+            corretas_por_id = {q.get("id_unico", q["id"]): q["correta"] for q in prov}
+            acertos = sum(1 for qid in ids_questoes if respostas.get(qid) == corretas_por_id.get(qid))
+            pct = (acertos / total * 100) if total else 0.0
+            dados_tabela.append({
+                "Módulo": grupo,
+                "Total": total,
+                "Acertos": acertos,
+                "%": f"{pct:.1f}%"
+            })
+        
+        if dados_tabela:
+            df_rel = pd.DataFrame(dados_tabela)
+            st.dataframe(
+                df_rel.style.format({"Total": "{:.0f}", "Acertos": "{:.0f}"}),
+                use_container_width=True,
+                hide_index=True,
+            )
+        
+        with st.expander("📋 Ver correção completa", expanded=False):
+            def render_correcao(q_item, resp):
+                num = q_item.get("numero_original", q_item.get("id_unico", q_item["id"]))
+                correto = (resp is not None) and (resp == q_item["correta"])
+                nao_respondida = resp is None
+                if correto:
+                    st.success(f"✅ Q{num} — {q_item['codigo']}: correto ({resp})")
+                elif nao_respondida:
+                    st.warning(
+                        f"⚠️ Q{num} — {q_item['codigo']}: não respondida | "
+                        f"correta: **{q_item['correta']}**"
+                    )
+                else:
+                    st.error(
+                        f"❌ Q{num} — {q_item['codigo']}: "
+                        f"você marcou **{resp}** | correta: **{q_item['correta']}**"
+                    )
+                with st.expander(f"Explicação — {q_item['codigo']}"):
+                    st.write(q_item.get("explicacao", "Sem explicação disponível."))
+            
+            tabs = st.tabs(["Todas", "✅ Acertos", "❌ Erros", "⚠️ Não respondidas"])
+            
+            with tabs[0]:
+                for q_item in prov:
+                    render_correcao(q_item, respostas.get(q_item.get("id_unico", q_item["id"])))
+            
+            with tabs[1]:
+                lst = [q_item for q_item in prov if respostas.get(q_item.get("id_unico", q_item["id"])) == q_item["correta"]]
+                if lst:
+                    for q_item in lst:
+                        render_correcao(q_item, respostas.get(q_item.get("id_unico", q_item["id"])))
+                else:
+                    st.info("Nenhum acerto.")
+            
+            with tabs[2]:
+                lst = [
+                    q_item for q_item in prov
+                    if respostas.get(q_item.get("id_unico", q_item["id"])) is not None
+                    and respostas.get(q_item.get("id_unico", q_item["id"])) != q_item["correta"]
+                ]
+                if lst:
+                    for q_item in lst:
+                        render_correcao(q_item, respostas.get(q_item.get("id_unico", q_item["id"])))
+                else:
+                    st.info("Nenhum erro.")
+            
+            with tabs[3]:
+                lst = [q_item for q_item in prov if respostas.get(q_item.get("id_unico", q_item["id"])) is None]
+                if lst:
+                    for q_item in lst:
+                        render_correcao(q_item, None)
+                else:
+                    st.info("Todas as questões foram respondidas.")
+        
+        if st.button("🔄 Nova Prova", use_container_width=True):
+            resetar_prova()
+            st.rerun()
 
 # =======================================================
 # MODO 5 — Histórico de Provas
