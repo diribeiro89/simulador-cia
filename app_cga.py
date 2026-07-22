@@ -1453,6 +1453,11 @@ elif modo == "Dashboard":
         st.stop()
     df = pd.DataFrame(st.session_state.historico)
     df["acertou_num"] = df["acertou"].astype(int)
+    
+    # Garantir que a coluna "fonte" exista
+    if "fonte" not in df.columns:
+        df["fonte"] = "Sem fonte"
+    
     st.divider()
     st.markdown("### Desempenho por modo de estudo")
     por_origem = df.groupby("origem").agg(total=("acertou_num", "count"), acertos=("acertou_num", "sum")).reset_index()
@@ -1460,6 +1465,7 @@ elif modo == "Dashboard":
     for _, row in por_origem.iterrows():
         label = LABEL_ORIGEM.get(row["origem"], row["origem"])
         st.progress(row["Taxa (%)"]/100, text=f"{label}: {row['Taxa (%)']:.1f}% ({row['acertos']}/{row['total']})")
+    
     st.divider()
     st.markdown("### Desempenho por tema")
     tema_df = df.groupby("tema", dropna=False).agg(total=("acertou_num", "count"), acertos=("acertou_num", "sum")).reset_index()
@@ -1469,6 +1475,7 @@ elif modo == "Dashboard":
     st.bar_chart(tema_df.set_index("tema")["Taxa (%)"])
     with st.expander("📊 Tabela detalhada por tema"):
         st.dataframe(tema_df[["tema", "Taxa (%)", "acertos", "total"]].rename(columns={"tema":"Tema","acertos":"Acertos","total":"Total"}).style.format({"Taxa (%)":"{:.1f}"}), use_container_width=True)
+    
     st.divider()
     st.markdown("### Desempenho por fonte")
     fonte_df = df.groupby("fonte", dropna=False).agg(total=("acertou_num", "count"), acertos=("acertou_num", "sum")).reset_index()
@@ -1478,6 +1485,7 @@ elif modo == "Dashboard":
     st.bar_chart(fonte_df.set_index("fonte")["Taxa (%)"])
     with st.expander("📊 Tabela detalhada por fonte"):
         st.dataframe(fonte_df[["fonte", "Taxa (%)", "acertos", "total"]].rename(columns={"fonte":"Fonte","acertos":"Acertos","total":"Total"}).style.format({"Taxa (%)":"{:.1f}"}), use_container_width=True)
+    
     st.divider()
     st.markdown("### Desempenho por objetivo")
     obj_df = df.groupby("objetivo", dropna=False).agg(total=("acertou_num", "count"), acertos=("acertou_num", "sum")).reset_index()
@@ -1488,12 +1496,14 @@ elif modo == "Dashboard":
     st.bar_chart(obj_df.set_index("Objetivo curto")["Taxa (%)"])
     with st.expander("📊 Tabela detalhada por objetivo"):
         st.dataframe(obj_df[["objetivo", "Taxa (%)", "acertos", "total"]].rename(columns={"objetivo":"Objetivo","acertos":"Acertos","total":"Total"}).style.format({"Taxa (%)":"{:.1f}"}), use_container_width=True)
+    
     st.divider()
     if len(st.session_state.historico) >= 5:
         st.markdown("### Evolução da taxa de acerto — média móvel (janela 10)")
         df["media_movel"] = df["acertou_num"].rolling(window=10, min_periods=1).mean().mul(100).round(1)
         df.index.name = "Questão #"
         st.line_chart(df["media_movel"])
+    
     st.divider()
     st.markdown("### Últimas 10 respostas")
     for h in st.session_state.historico[-10:][::-1]:
