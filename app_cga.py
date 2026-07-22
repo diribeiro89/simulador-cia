@@ -782,8 +782,13 @@ if modo == "Treino livre":
 # =======================================================
 # MODO 2 — Revisar erros
 # =======================================================
+# =======================================================
+# MODO 2 — Revisar erros (igual ao destacadas)
+# =======================================================
 elif modo == "Revisar erros":
     st.subheader("Revisar erros (Leitner)")
+
+    # Se não houver lista de revisão, cria uma
     if not st.session_state.revisao_lista:
         questoes_revisar = []
         hoje = datetime.now().strftime("%Y-%m-%d")
@@ -802,11 +807,15 @@ elif modo == "Revisar erros":
         st.session_state.revisao_i = 0
         st.session_state.revisao_respondido = False
         st.session_state.revisao_resposta = None
+
     if not st.session_state.revisao_lista:
         st.info("Você não tem erros salvos ou agendados para revisar.")
         st.stop()
+
     total_rev = len(st.session_state.revisao_lista)
     i_rev = st.session_state.revisao_i
+
+    # Navegação (igual ao destacadas)
     col_prev, col_pos, col_info = st.columns([1, 1, 2])
     with col_prev:
         if st.button("◀ Anterior", disabled=(i_rev == 0), use_container_width=True):
@@ -822,26 +831,60 @@ elif modo == "Revisar erros":
             st.rerun()
     with col_info:
         st.caption(f"Questão {i_rev + 1} de {total_rev}")
+
     q = st.session_state.revisao_lista[i_rev]
     st.divider()
     card_questao(q, mostrar_destaque=True)
-    resposta = render_alternativas_com_descarte(q, f"rev_{q.get('id_unico', q['id'])}_{i_rev}")
+
+    # --- Alternativas com radio (igual ao destacadas) ---
+    opcoes = list(q['opcoes'].keys())
+    resposta_key = f"revisao_{q.get('id_unico', q['id'])}"
+    if resposta_key not in st.session_state:
+        st.session_state[resposta_key] = None
+
+    # Se já respondeu, exibe a resposta escolhida como padrão
+    default_index = None
+    if st.session_state.revisao_respondido and st.session_state.revisao_resposta in opcoes:
+        default_index = opcoes.index(st.session_state.revisao_resposta)
+
+    selected = st.radio(
+        "Escolha uma alternativa:",
+        opcoes,
+        format_func=lambda x: f"{x}) {q['opcoes'][x]}",
+        key=f"radio_rev_{q.get('id_unico', q['id'])}_{i_rev}",
+        index=default_index,
+        disabled=st.session_state.revisao_respondido
+    )
+    st.session_state[resposta_key] = selected
+
+    # Se não respondeu ainda, guarda a seleção
+    if not st.session_state.revisao_respondido and selected is not None:
+        st.session_state.revisao_resposta = selected
+
+    # --- Botão Responder ---
     if not st.session_state.revisao_respondido:
         if st.button("✅ Responder", use_container_width=True):
-            if resposta is None:
+            if st.session_state.revisao_resposta is None:
                 st.warning("Selecione uma alternativa antes de responder.")
             else:
-                st.session_state.revisao_resposta = resposta
                 st.session_state.revisao_respondido = True
-                registrar_resposta(q, resposta, "revisao_erros", salvar_imediato=True)
+                registrar_resposta(q, st.session_state.revisao_resposta, "revisao_erros", salvar_imediato=True)
                 st.rerun()
     else:
+        # Mostra o resultado
         mostrar_resultado(q, st.session_state.revisao_resposta)
-        if st.button("🔄 Avançar", use_container_width=True):
+        # Botão para avançar (opcional: pode ser "Próxima questão" ou "Avançar")
+        if st.button("➡️ Próxima questão", use_container_width=True):
+            # Avança para a próxima (se houver)
+            if i_rev + 1 < total_rev:
+                st.session_state.revisao_i += 1
+            else:
+                # Se acabou, pode marcar como concluído e limpar a lista
+                st.session_state.revisao_concluida = True
+                st.session_state.revisao_lista = []
             st.session_state.revisao_respondido = False
             st.session_state.revisao_resposta = None
             st.rerun()
-
 # =======================================================
 # MODO 3 — Simulado (com abas)
 # =======================================================
