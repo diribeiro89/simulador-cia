@@ -1,4 +1,4 @@
-import streamlitas st
+import streamlit as st
 import json
 import random
 import time
