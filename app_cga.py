@@ -784,8 +784,6 @@ if modo == "Treino livre":
 # =======================================================
 elif modo == "Revisar erros":
     st.subheader("Revisar erros (Leitner)")
-    
-    # Inicializa a lista de revisão (se vazia)
     if not st.session_state.revisao_lista:
         questoes_revisar = []
         hoje = datetime.now().strftime("%Y-%m-%d")
@@ -804,15 +802,11 @@ elif modo == "Revisar erros":
         st.session_state.revisao_i = 0
         st.session_state.revisao_respondido = False
         st.session_state.revisao_resposta = None
-
     if not st.session_state.revisao_lista:
         st.info("Você não tem erros salvos ou agendados para revisar.")
         st.stop()
-
     total_rev = len(st.session_state.revisao_lista)
     i_rev = st.session_state.revisao_i
-
-    # Navegação
     col_prev, col_pos, col_info = st.columns([1, 1, 2])
     with col_prev:
         if st.button("◀ Anterior", disabled=(i_rev == 0), use_container_width=True):
@@ -828,55 +822,26 @@ elif modo == "Revisar erros":
             st.rerun()
     with col_info:
         st.caption(f"Questão {i_rev + 1} de {total_rev}")
-
     q = st.session_state.revisao_lista[i_rev]
     st.divider()
     card_questao(q, mostrar_destaque=True)
-
-    # --- ALTERNATIVAS COM RADIO (sem descarte) ---
-    # Pega as opções e a resposta atual (se houver)
-    opcoes = list(q['opcoes'].keys())
-    resposta_atual = st.session_state.revisao_resposta if st.session_state.revisao_respondido else None
-    
-    # Define o índice padrão (None) ou o valor já selecionado
-    default_index = None
-    if resposta_atual in opcoes:
-        default_index = opcoes.index(resposta_atual)
-    
-    # Radio para seleção
-    selected = st.radio(
-        "Escolha uma alternativa:",
-        opcoes,
-        format_func=lambda x: f"{x}) {q['opcoes'][x]}",
-        key=f"radio_rev_{q.get('id_unico', q['id'])}_{i_rev}",
-        index=default_index,
-        disabled=st.session_state.revisao_respondido
-    )
-    
-    # Se não respondeu ainda e uma opção foi selecionada, guarda no session_state
-    if not st.session_state.revisao_respondido and selected is not None:
-        st.session_state.revisao_resposta = selected
-
-    # Botão Responder (só aparece se ainda não respondeu)
+    resposta = render_alternativas_com_descarte(q, f"rev_{q.get('id_unico', q['id'])}_{i_rev}")
     if not st.session_state.revisao_respondido:
         if st.button("✅ Responder", use_container_width=True):
-            if st.session_state.revisao_resposta is None:
+            if resposta is None:
                 st.warning("Selecione uma alternativa antes de responder.")
             else:
+                st.session_state.revisao_resposta = resposta
                 st.session_state.revisao_respondido = True
-                registrar_resposta(q, st.session_state.revisao_resposta, "revisao_erros", salvar_imediato=True)
+                registrar_resposta(q, resposta, "revisao_erros", salvar_imediato=True)
                 st.rerun()
     else:
-        # Mostra o resultado da resposta
         mostrar_resultado(q, st.session_state.revisao_resposta)
         if st.button("🔄 Avançar", use_container_width=True):
             st.session_state.revisao_respondido = False
             st.session_state.revisao_resposta = None
-            # Avança para a próxima questão (se houver)
-            if i_rev < total_rev - 1:
-                st.session_state.revisao_i += 1
             st.rerun()
-            
+
 # =======================================================
 # MODO 3 — Simulado (com abas)
 # =======================================================
@@ -1356,10 +1321,8 @@ elif modo == "Questões Destacadas":
         st.session_state.destacada_i = 0
         st.session_state.destacada_respondido = False
         st.session_state.destacada_resposta = None
-
     total = len(st.session_state.destacada_lista)
     i = st.session_state.destacada_i
-
     if i >= total:
         st.success("🎉 Você revisou todas as questões destacadas!")
         col1, col2 = st.columns(2)
@@ -1373,8 +1336,6 @@ elif modo == "Questões Destacadas":
                 st.session_state.destacada_i = 0
                 st.rerun()
         st.stop()
-
-    # Navegação
     col_prev, col_pos, col_info = st.columns([1, 1, 2])
     with col_prev:
         if st.button("◀ Anterior", disabled=(i == 0), use_container_width=True):
@@ -1390,48 +1351,34 @@ elif modo == "Questões Destacadas":
             st.rerun()
     with col_info:
         st.caption(f"Questão {i + 1} de {total}")
-
     q = st.session_state.destacada_lista[i]
     st.divider()
     card_questao(q, mostrar_objetivo=True, mostrar_destaque=True)
-
-    # Radio para seleção
     opcoes = list(q['opcoes'].keys())
-    resposta_atual = st.session_state.destacada_resposta if st.session_state.destacada_respondido else None
-    default_index = None
-    if resposta_atual in opcoes:
-        default_index = opcoes.index(resposta_atual)
-
+    resposta_key = f"destacada_{q.get('id_unico', q['id'])}"
+    if resposta_key not in st.session_state:
+        st.session_state[resposta_key] = None
     selected = st.radio(
         "Escolha uma alternativa:",
         opcoes,
         format_func=lambda x: f"{x}) {q['opcoes'][x]}",
         key=f"radio_dest_{q.get('id_unico', q['id'])}_{i}",
-        index=default_index,
-        disabled=st.session_state.destacada_respondido
+        index=None
     )
-
-    if not st.session_state.destacada_respondido and selected is not None:
-        st.session_state.destacada_resposta = selected
-
+    st.session_state[resposta_key] = selected
     if not st.session_state.destacada_respondido:
         if st.button("✅ Responder", use_container_width=True):
-            if st.session_state.destacada_resposta is None:
-                st.warning("Selecione uma alternativa antes de responder.")
+            if selected is None:
+                st.warning("Selecione uma alternativa.")
             else:
+                st.session_state.destacada_resposta = selected
                 st.session_state.destacada_respondido = True
-                # Registrar resposta (opcional: pode registrar no histórico geral)
-                registrar_resposta(q, st.session_state.destacada_resposta, "treino", salvar_imediato=True)
                 st.rerun()
     else:
         mostrar_resultado(q, st.session_state.destacada_resposta)
         if st.button("⭐ Remover destaque", use_container_width=True):
-            qid = q.get("id_unico", q["id"])
-            if qid in st.session_state.destacadas:
-                st.session_state.destacadas.remove(qid)
-                db.remover_destacada(qid)
-            # Remove da lista atual
-            st.session_state.destacada_lista = [item for item in st.session_state.destacada_lista if item.get("id_unico", item["id"]) != qid]
+            toggle_destaque(q.get("id_unico", q["id"]))
+            st.session_state.destacada_lista = [item for item in st.session_state.destacada_lista if item.get("id_unico", item["id"]) != q.get("id_unico", q["id"])]
             if st.session_state.destacada_i >= len(st.session_state.destacada_lista):
                 st.session_state.destacada_i = max(0, len(st.session_state.destacada_lista) - 1)
             st.session_state.destacada_respondido = False
@@ -1504,12 +1451,16 @@ elif modo == "Dashboard":
     if not st.session_state.historico:
         st.info("Ainda não há histórico. Responda questões no treino, revisão ou simulado para alimentar o painel.")
         st.stop()
+    
     df = pd.DataFrame(st.session_state.historico)
     df["acertou_num"] = df["acertou"].astype(int)
     
-    # Garantir que a coluna "fonte" exista
+    # GARANTE QUE A COLUNA "fonte" EXISTA
     if "fonte" not in df.columns:
         df["fonte"] = "Sem fonte"
+    else:
+        # Preenche valores nulos com "Sem fonte"
+        df["fonte"] = df["fonte"].fillna("Sem fonte")
     
     st.divider()
     st.markdown("### Desempenho por modo de estudo")
@@ -1565,5 +1516,5 @@ elif modo == "Dashboard":
         origem_label = LABEL_ORIGEM.get(h.get("origem"), "—")
         tema_label = h.get("tema") or "—"
         num = h.get("numero_original") or h["id"]
-        fonte_label = h.get("fonte", "")
+        fonte_label = h.get("fonte", "Sem fonte")
         st.write(f"{icon} **{tema_label}** | Q{num} — {h['codigo']} {f'({fonte_label})' if fonte_label else ''} | Marcada: **{resp}** | Correta: **{h['correta']}** | _{origem_label}_")
